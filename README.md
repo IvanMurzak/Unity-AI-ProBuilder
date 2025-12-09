@@ -32,7 +32,7 @@ Advanced:
 
 ### Option 1 - Installer
 
-- **[⬇️ Download Installer](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.0/Unity-AI-ProBuilder-Installer.unitypackage)**
+- **[⬇️ Download Installer](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.0/AI-ProBuilder-Installer.unitypackage)**
 - **📂 Import installer into Unity project**
   > - You can double-click on the file - Unity will open it automatically
   > - OR: Open Unity Editor first, then click on `Assets/Import Package/Custom Package`, and choose the file
