@@ -1,7 +1,12 @@
 {
     "name": "com.IvanMurzak.Unity.MCP.ProBuilder.Editor",
+    "rootNamespace": "",
     "references": [
-        "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime"
+        "com.IvanMurzak.Unity.MCP.Editor",
+        "com.IvanMurzak.Unity.MCP.Runtime",
+        "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime",
+        "Unity.ProBuilder.Editor",
+        "Unity.ProBuilder"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

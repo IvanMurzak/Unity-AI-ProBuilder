@@ -42,7 +42,20 @@
     "Script_Execute",
     "Script_Read",
     "Script_CreateOrUpdate",
-    "TestRunner_Run"
+    "TestRunner_Run",
+    "ProBuilder_Bevel",
+    "ProBuilder_Bridge",
+    "ProBuilder_ConnectEdges",
+    "ProBuilder_CreateShape",
+    "ProBuilder_DeleteFaces",
+    "ProBuilder_Extrude",
+    "ProBuilder_FlipNormals",
+    "ProBuilder_GetMeshInfo",
+    "ProBuilder_MergeObjects",
+    "ProBuilder_CreatePolyShape",
+    "ProBuilder_SetFaceMaterial",
+    "ProBuilder_SetPivot",
+    "ProBuilder_SubdivideEdges"
   ],
   "EnabledPrompts": [
     "setup-animator-controller",
@@ -97,5 +110,5 @@
   ],
   "Host": "http://localhost:54466",
   "TimeoutMs": 10000,
-  "KeepConnected": false
+  "KeepConnected": true
 }

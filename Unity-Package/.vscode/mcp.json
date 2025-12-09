@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "ai-game-developer": {
+      "type": "stdio",
+      "command": "C:/Projects/Unity/Unity-AI-ProBuilder/Unity-Package/Library/mcp-server/win-x64/unity-mcp-server.exe",
+      "args": [
+        "--port=54466",
+        "--plugin-timeout=10000",
+        "--client-transport=stdio"
+      ]
+    }
+  }
+}
