@@ -18,7 +18,9 @@ namespace com.IvanMurzak.Unity.MCP.ProBuilder.Installer
     {
         public static void ExportPackage()
         {
-            var packagePath = "Assets/AI ProBuilder Installer";
+            Debug.Log("Starting Package Export...");
+
+            var packagePath = "Assets/com.IvanMurzak/AI ProBuilder Installer";
             var outputPath = "build/AI-ProBuilder-Installer.unitypackage";
 
             // Ensure build directory exists
