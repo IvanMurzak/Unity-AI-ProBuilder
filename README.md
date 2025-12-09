@@ -1,6 +1,6 @@
-<h1 align="center"><a href="https://github.com/IvanMurzak/Unity-AI-Tools-Template">Unity AI Tools Template</a></h1>
+<h1 align="center"><a href="https://github.com/IvanMurzak/Unity-AI-ProBuilder">Unity AI Tools Template</a></h1>
 
-<img width="100%" alt="Stats" src="https://github.com/IvanMurzak/Unity-AI-Tools-Template/raw/main/docs/img/ai-probuilder-glitch.gif"/>
+<img width="100%" alt="Stats" src="https://github.com/IvanMurzak/Unity-AI-ProBuilder/raw/main/docs/img/ai-probuilder-glitch.gif"/>
 
 Template for AI MCP Tools for [AI Game Developer (Unity-MCP)](https://github.com/IvanMurzak/Unity-MCP). Use this template to create your custom MCP tools for Unity Engine in 30 minutes. Read more about custom MCP tools [here](https://github.com/IvanMurzak/Unity-MCP?tab=readme-ov-file#add-custom-mcp-tool).
 
