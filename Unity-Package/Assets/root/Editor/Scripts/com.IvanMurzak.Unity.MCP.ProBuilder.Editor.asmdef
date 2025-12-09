@@ -6,7 +6,13 @@
         "com.IvanMurzak.Unity.MCP.Runtime",
         "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime",
         "Unity.ProBuilder.Editor",
-        "Unity.ProBuilder"
+        "Unity.ProBuilder",
+        "Unity.ProBuilder.Poly2Tri",
+        "Unity.ProBuilder.Csg",
+        "Unity.ProBuilder.Stl",
+        "Unity.ProBuilder.KdTree",
+        "Unity.ProBuilder.AddOns.Editor",
+        "Unity.ProBuilder.AssetIdRemapUtility"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
