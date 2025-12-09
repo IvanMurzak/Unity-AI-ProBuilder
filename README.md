@@ -15,7 +15,7 @@
 
 <img width="100%" alt="Stats" src="https://github.com/IvanMurzak/Unity-AI-ProBuilder/raw/main/docs/img/ai-probuilder-glitch.gif"/>
 
-AI Tools for Unity ProBuilder. Let AI to work with ProBuilder features. Fast level prototyping. It is constructed on top of [AI Game Developer](https://github.com/IvanMurzak/Unity-AI-ProBuilder) platform.
+AI Tools for Unity ProBuilder. Let AI to work with ProBuilder features. Fast level prototyping. It is constructed on top of [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) platform.
 
 ### Stability status
 
