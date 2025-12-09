@@ -48,6 +48,18 @@ $VersionFiles = @(
         Pattern     = 'public const string Version = "[\d\.]+";'
         Replace     = 'public const string Version = "{VERSION}";'
         Description = "Installer C# version constant"
+    },
+    @{
+        Path        = "Unity-Package/Assets/root/README.md"
+        Pattern     = "https://github\.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/[\d\.]+/AI-ProBuilder-Installer\.unitypackage"
+        Replace     = "https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/{VERSION}/AI-ProBuilder-Installer.unitypackage"
+        Description = "Plugin README download URL"
+    },
+    @{
+        Path        = "README.md"
+        Pattern     = "https://github\.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/[\d\.]+/AI-ProBuilder-Installer\.unitypackage"
+        Replace     = "https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/{VERSION}/AI-ProBuilder-Installer.unitypackage"
+        Description = "Plugin README download URL"
     }
 )
 

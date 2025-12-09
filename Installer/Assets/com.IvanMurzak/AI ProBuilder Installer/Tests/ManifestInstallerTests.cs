@@ -17,7 +17,7 @@ namespace com.IvanMurzak.Unity.MCP.ProBuilder.Installer.Tests
     {
         const string PackageIdTag = "PACKAGE_ID";
         const string PackageVersionTag = "PACKAGE_VERSION";
-        const string FilesRoot = "Assets/AI ProBuilder Installer/Tests/Files";
+        const string FilesRoot = "Assets/com.IvanMurzak/AI ProBuilder Installer/Tests/Files";
         const string FilesCopyRoot = "Temp/AI ProBuilder Installer/Tests/Files";
         static string CorrectManifestPath => $"{FilesRoot}/Correct/correct_manifest.json";
 
