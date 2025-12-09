@@ -1,10 +1,14 @@
 {
-    "name": "YOUR_PACKAGE_ID.Tests",
+    "name": "com.IvanMurzak.Unity.MCP.ProBuilder.Editor.Tests",
     "references": [
         "UnityEngine.TestRunner",
-        "YOUR_PACKAGE_ID.Runtime"
+        "UnityEditor.TestRunner",
+        "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime",
+        "com.IvanMurzak.Unity.MCP.ProBuilder.Editor"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,

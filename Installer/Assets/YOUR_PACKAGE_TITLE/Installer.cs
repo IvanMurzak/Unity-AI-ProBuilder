@@ -10,12 +10,12 @@
 #nullable enable
 using UnityEditor;
 
-namespace YOUR_PACKAGE_ID.Installer
+namespace com.IvanMurzak.Unity.MCP.ProBuilder.Installer
 {
     [InitializeOnLoad]
     public static partial class Installer
     {
-        public const string PackageId = "YOUR_PACKAGE_ID_LOWERCASE";
+        public const string PackageId = "com.ivanmurzak.unity.mcp.probuilder";
         public const string Version = "1.0.0";
 
         static Installer()

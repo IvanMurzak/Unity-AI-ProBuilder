@@ -1,6 +1,6 @@
 {
-    "name": "YOUR_PACKAGE_ID_LOWERCASE",
-    "displayName": "YOUR_PACKAGE_NAME",
+    "name": "com.ivanmurzak.unity.mcp.probuilder",
+    "displayName": "AI ProBuilder",
     "author": {
         "name": "Your_Name",
         "url": "https://github.com/Your_Name"

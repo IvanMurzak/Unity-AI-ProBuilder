@@ -24,7 +24,7 @@ Use the initialization script to rename the package and replace all placeholders
 
 This script will:
 - Rename directories and files.
-- Replace `YOUR_PACKAGE_ID`, `YOUR_PACKAGE_NAME`, etc. in all files.
+- Replace `com.IvanMurzak.Unity.MCP.ProBuilder`, `AI ProBuilder`, etc. in all files.
 
 #### 4️⃣ Manual Configuration
 
@@ -182,7 +182,7 @@ When your package is distributed, you can install it into any Unity project.
 - Execute the command (for `OpenUPM` hosted package)
 
   ```bash
-  openupm add YOUR_PACKAGE_NAME
+  openupm add AI ProBuilder
   ```
 
 # Final view in Unity Package Manager

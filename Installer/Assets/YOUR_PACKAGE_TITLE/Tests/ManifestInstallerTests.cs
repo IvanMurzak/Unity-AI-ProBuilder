@@ -11,14 +11,14 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace YOUR_PACKAGE_ID.Installer.Tests
+namespace com.IvanMurzak.Unity.MCP.ProBuilder.Installer.Tests
 {
     public class ManifestInstallerTests
     {
         const string PackageIdTag = "PACKAGE_ID";
         const string PackageVersionTag = "PACKAGE_VERSION";
-        const string FilesRoot = "Assets/YOUR_PACKAGE_NAME_INSTALLER/Tests/Files";
-        const string FilesCopyRoot = "Temp/YOUR_PACKAGE_NAME_INSTALLER/Tests/Files";
+        const string FilesRoot = "Assets/AI ProBuilder Installer/Tests/Files";
+        const string FilesCopyRoot = "Temp/AI ProBuilder Installer/Tests/Files";
         static string CorrectManifestPath => $"{FilesRoot}/Correct/correct_manifest.json";
 
         [SetUp]

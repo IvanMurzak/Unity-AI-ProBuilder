@@ -1,8 +1,8 @@
 {
-    "name": "YOUR_PACKAGE_ID.Installer.Tests",
-    "rootNamespace": "YOUR_PACKAGE_ID.Installer.Tests",
+    "name": "com.IvanMurzak.Unity.MCP.ProBuilder.Installer.Tests",
+    "rootNamespace": "com.IvanMurzak.Unity.MCP.ProBuilder.Installer.Tests",
     "references": [
-        "YOUR_PACKAGE_ID.Installer"
+        "com.IvanMurzak.Unity.MCP.ProBuilder.Installer"
     ],
     "includePlatforms": [
         "Editor"

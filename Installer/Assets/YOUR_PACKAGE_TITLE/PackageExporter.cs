@@ -12,14 +12,14 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 
-namespace YOUR_PACKAGE_ID.Installer
+namespace com.IvanMurzak.Unity.MCP.ProBuilder.Installer
 {
     public static class PackageExporter
     {
         public static void ExportPackage()
         {
-            var packagePath = "Assets/YOUR_PACKAGE_NAME_INSTALLER";
-            var outputPath = "build/YOUR_PACKAGE_NAME_INSTALLER_FILE.unitypackage";
+            var packagePath = "Assets/AI ProBuilder Installer";
+            var outputPath = "build/AI-ProBuilder-Installer.unitypackage";
 
             // Ensure build directory exists
             var buildDir = Path.GetDirectoryName(outputPath);

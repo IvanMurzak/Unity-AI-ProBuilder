@@ -142,7 +142,7 @@ When your package is distributed, you can install it into any Unity project.
 - Execute the command (for `OpenUPM` hosted package)
 
   ```bash
-  openupm add YOUR_PACKAGE_NAME
+  openupm add AI ProBuilder
   ```
 
 # Final view in Unity Package Manager

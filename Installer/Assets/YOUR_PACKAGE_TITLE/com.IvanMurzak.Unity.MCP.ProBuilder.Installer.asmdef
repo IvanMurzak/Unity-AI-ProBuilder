@@ -1,6 +1,6 @@
 {
-    "name": "YOUR_PACKAGE_ID.Installer",
-    "rootNamespace": "YOUR_PACKAGE_ID.Installer",
+    "name": "com.IvanMurzak.Unity.MCP.ProBuilder.Installer",
+    "rootNamespace": "com.IvanMurzak.Unity.MCP.ProBuilder.Installer",
     "references": [],
     "includePlatforms": [
         "Editor"

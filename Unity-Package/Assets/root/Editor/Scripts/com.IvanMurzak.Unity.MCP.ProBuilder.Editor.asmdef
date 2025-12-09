@@ -1,10 +1,10 @@
 {
-    "name": "YOUR_PACKAGE_ID.Runtime",
-    "references": [],
-    "includePlatforms": [],
-    "excludePlatforms": [
-        "Editor"
+    "name": "com.IvanMurzak.Unity.MCP.ProBuilder.Editor",
+    "references": [
+        "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime"
     ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
