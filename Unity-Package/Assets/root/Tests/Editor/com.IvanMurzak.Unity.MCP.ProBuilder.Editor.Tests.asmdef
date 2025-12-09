@@ -1,10 +1,13 @@
 {
     "name": "com.IvanMurzak.Unity.MCP.ProBuilder.Editor.Tests",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime",
-        "com.IvanMurzak.Unity.MCP.ProBuilder.Editor"
+        "com.IvanMurzak.Unity.MCP.ProBuilder.Editor",
+        "com.IvanMurzak.Unity.MCP.Editor",
+        "com.IvanMurzak.Unity.MCP.Runtime"
     ],
     "includePlatforms": [
         "Editor"

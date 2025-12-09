@@ -14,7 +14,9 @@
         "Unity.ProBuilder.AddOns.Editor",
         "Unity.ProBuilder.AssetIdRemapUtility"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

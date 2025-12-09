@@ -92,7 +92,7 @@ jobs:
           customImage: "unityci/editor:ubuntu-${{ env.INSTALLER_UNITY_VERSION }}-base-3"
           buildName: Unity-Installer
           buildsPath: build
-          buildMethod: YOUR_PACKAGE_ID.Installer.PackageExporter.ExportPackage
+          buildMethod: com.IvanMurzak.Unity.MCP.ProBuilder.Installer.PackageExporter.ExportPackage
           customParameters: -CI true -GITHUB_ACTIONS true
 
       - name: Upload Unity Package as artifact

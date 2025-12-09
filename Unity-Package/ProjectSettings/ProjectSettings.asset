@@ -17,7 +17,7 @@ PlayerSettings:
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.12156863, g: 0.12156863, b: 0.1254902, a: 1}
-  m_ShowUnitySplashScreen: 1
+  m_ShowUnitySplashScreen: 0
   m_ShowUnitySplashLogo: 1
   m_SplashScreenOverlayOpacity: 1
   m_SplashScreenAnimation: 1
@@ -80,7 +80,7 @@ PlayerSettings:
   androidPredictiveBackSupport: 0
   defaultIsNativeResolution: 1
   macRetinaSupport: 1
-  runInBackground: 0
+  runInBackground: 1
   captureSingleScreen: 0
   muteOtherAudioSources: 0
   Prepare IOS For Recording: 0
@@ -94,7 +94,7 @@ PlayerSettings:
   bakeCollisionMeshes: 0
   forceSingleInstance: 0
   useFlipModelSwapchain: 1
-  resizableWindow: 0
+  resizableWindow: 1
   useMacAppStoreValidation: 0
   macAppStoreCategory: public.app-category.games
   gpuSkinning: 0
@@ -105,7 +105,7 @@ PlayerSettings:
   xboxEnableFitness: 0
   visibleInBackground: 1
   allowFullscreenSwitch: 1
-  fullscreenMode: 1
+  fullscreenMode: 3
   xboxSpeechDB: 0
   xboxEnableHeadOrientation: 0
   xboxEnableGuest: 0
@@ -157,19 +157,23 @@ PlayerSettings:
   useHDRDisplay: 0
   hdrBitDepth: 0
   m_ColorGamuts: 00000000
-  targetPixelDensity: 0
+  targetPixelDensity: 30
   resolutionScalingMode: 0
   resetResolutionOnWindowResize: 0
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier: {}
-  buildNumber: {}
+  buildNumber:
+    Standalone: 0
+    VisionOS: 0
+    iPhone: 0
+    tvOS: 0
   overrideDefaultApplicationIdentifier: 0
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 22
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
-  aotOptions: 
+  aotOptions: nimt-trampolines=1024
   stripEngineCode: 1
   iPhoneStrippingLevel: 0
   iPhoneScriptCallOptimization: 0
@@ -183,13 +187,13 @@ PlayerSettings:
   VertexChannelCompressionMask: 4054
   iPhoneSdkVersion: 988
   iOSSimulatorArchitecture: 0
-  iOSTargetOSVersionString: 
+  iOSTargetOSVersionString: 12.0
   tvOSSdkVersion: 0
   tvOSSimulatorArchitecture: 0
   tvOSRequireExtendedGameController: 0
-  tvOSTargetOSVersionString: 
+  tvOSTargetOSVersionString: 12.0
   VisionOSSdkVersion: 0
-  VisionOSTargetOSVersionString: 
+  VisionOSTargetOSVersionString: 1.0
   uIPrerenderedIcon: 0
   uIRequiresPersistentWiFi: 0
   uIRequiresFullScreen: 1
@@ -317,7 +321,7 @@ PlayerSettings:
   locationUsageDescription: 
   microphoneUsageDescription: 
   bluetoothUsageDescription: 
-  macOSTargetOSVersion: 
+  macOSTargetOSVersion: 10.13.0
   switchNMETAOverride: 
   switchNetLibKey: 
   switchSocketMemoryPoolSize: 6144

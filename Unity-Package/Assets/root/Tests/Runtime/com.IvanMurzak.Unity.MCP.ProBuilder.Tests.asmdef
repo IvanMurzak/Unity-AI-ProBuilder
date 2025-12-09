@@ -1,8 +1,10 @@
 {
     "name": "com.IvanMurzak.Unity.MCP.ProBuilder.Tests",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
-        "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime"
+        "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime",
+        "com.IvanMurzak.Unity.MCP.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
