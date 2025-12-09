@@ -90,7 +90,7 @@ jobs:
           projectPath: ./Installer
           unityVersion: ${{ env.INSTALLER_UNITY_VERSION }}
           customImage: "unityci/editor:ubuntu-${{ env.INSTALLER_UNITY_VERSION }}-base-3"
-          buildName: Unity-Installer
+          buildName: AI-ProBuilder-Installer
           buildsPath: build
           buildMethod: com.IvanMurzak.Unity.MCP.ProBuilder.Installer.PackageExporter.ExportPackage
           customParameters: -CI true -GITHUB_ACTIONS true
@@ -287,7 +287,7 @@ jobs:
       - name: Upload Unity Package to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./Unity-Installer.unitypackage
+          files: ./AI-ProBuilder-Installer.unitypackage
           tag_name: ${{ needs.release-unity-plugin.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
