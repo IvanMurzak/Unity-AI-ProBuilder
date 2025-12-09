@@ -76,3 +76,6 @@ crashlytics-build.properties
 
 # Claude
 .claude
+
+# ProBuilder settings
+ProjectSettings/Packages/com.unity.probuilder/Settings.json
