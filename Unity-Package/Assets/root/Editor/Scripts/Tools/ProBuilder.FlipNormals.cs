@@ -28,7 +28,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_FlipNormals",
+            "probuilder-flip-normals",
             Title = "Flip face normals in a ProBuilder mesh"
         )]
         [Description(@"Reverses the normal direction of selected faces, flipping them inside-out.

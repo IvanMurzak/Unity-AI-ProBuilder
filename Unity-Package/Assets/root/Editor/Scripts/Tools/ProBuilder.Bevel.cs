@@ -29,7 +29,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_Bevel",
+            "probuilder-bevel",
             Title = "Bevel ProBuilder edges"
         )]
         [Description(@"Bevels selected edges of a ProBuilder mesh, creating chamfered corners.

@@ -15,7 +15,9 @@
 
 <img width="100%" alt="Stats" src="https://github.com/IvanMurzak/Unity-AI-ProBuilder/raw/main/docs/img/ai-probuilder-glitch.gif"/>
 
-AI Tools for Unity ProBuilder. Let AI to work with ProBuilder features. Fast level prototyping. It is constructed on top of [AI Game Developer](https://github.com/IvanMurzak/Unity-AI-ProBuilder) platform.
+AI Tools for Unity ProBuilder. Let AI to work with ProBuilder features. Fast level prototyping. It is constructed on top of [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) platform.
+
+[![DOWNLOAD INSTALLER](https://github.com/IvanMurzak/Unity-MCP/blob/main/docs/img/button/button_download.svg?raw=true)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.2/AI-ProBuilder-Installer.unitypackage)
 
 ### Stability status
 
@@ -28,25 +30,25 @@ AI Tools for Unity ProBuilder. Let AI to work with ProBuilder features. Fast lev
 ## AI ProBuilder Tools
 
 Core tools:
-- `ProBuilder_CreateShape` - Create primitive shapes (cube, sphere, cylinder, etc.)
-- `ProBuilder_GetMeshInfo` - Read mesh data (faces, vertices, edges)
-- `ProBuilder_Extrude` - Extrude faces with various methods
-- `ProBuilder_Bevel` - Bevel edges
-- `ProBuilder_DeleteFaces` - Delete faces by index or direction
-- `ProBuilder_SetFaceMaterial` - Apply materials to specific faces
+- `probuilder-create-shape` - Create primitive shapes (cube, sphere, cylinder, etc.)
+- `probuilder-get-mesh-info` - Read mesh data (faces, vertices, edges)
+- `probuilder-extrude` - Extrude faces with various methods
+- `probuilder-bevel` - Bevel edges
+- `probuilder-delete-faces` - Delete faces by index or direction
+- `probuilder-set-face-material` - Apply materials to specific faces
 
 Mesh operations:
-- `ProBuilder_FlipNormals` - Reverse face normals
-- `ProBuilder_SetPivot` - Change mesh pivot point
-- `ProBuilder_MergeObjects` - Combine multiple ProBuilder meshes
+- `probuilder-flip-normals` - Reverse face normals
+- `probuilder-set-pivot` - Change mesh pivot point
+- `probuilder-merge-objects` - Combine multiple ProBuilder meshes
 
 Edge operations:
-- `ProBuilder_SubdivideEdges` - Add vertices to edges
-- `ProBuilder_ConnectEdges` - Connect edges with new geometry
-- `ProBuilder_Bridge` - Bridge between edge selections
+- `probuilder-subdivide-edges` - Add vertices to edges
+- `probuilder-connect-edges` - Connect edges with new geometry
+- `probuilder-bridge` - Bridge between edge selections
 
 Advanced:
-- `ProBuilder_CreatePolyShape` - Create custom polygon-based meshes
+- `probuilder-create-poly-shape` - Create custom polygon-based meshes
 
 
 ## Installation

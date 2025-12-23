@@ -27,7 +27,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_SetFaceMaterial",
+            "probuilder-set-face-material",
             Title = "Set material on ProBuilder faces"
         )]
         [Description(@"Assigns a material to specific faces of a ProBuilder mesh.

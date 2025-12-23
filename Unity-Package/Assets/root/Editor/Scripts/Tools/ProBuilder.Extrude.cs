@@ -29,7 +29,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_Extrude",
+            "probuilder-extrude",
             Title = "Extrude ProBuilder faces"
         )]
         [Description(@"Extrudes selected faces of a ProBuilder mesh along their normals.

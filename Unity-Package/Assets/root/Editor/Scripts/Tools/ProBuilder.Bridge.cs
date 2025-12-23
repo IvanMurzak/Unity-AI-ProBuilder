@@ -27,7 +27,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_Bridge",
+            "probuilder-bridge",
             Title = "Bridge two edges in a ProBuilder mesh"
         )]
         [Description(@"Creates a new face connecting two edges.

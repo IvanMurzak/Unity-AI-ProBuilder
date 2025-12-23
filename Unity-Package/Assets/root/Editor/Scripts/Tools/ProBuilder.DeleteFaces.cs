@@ -28,7 +28,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_DeleteFaces",
+            "probuilder-delete-faces",
             Title = "Delete ProBuilder faces"
         )]
         [Description(@"Deletes selected faces from a ProBuilder mesh.

@@ -26,7 +26,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_GetMeshInfo",
+            "probuilder-get-mesh-info",
             Title = "Get ProBuilder mesh information"
         )]
         [Description(@"Retrieves information about a ProBuilder mesh including faces, vertices, and edges.
