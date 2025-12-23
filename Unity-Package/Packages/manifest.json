@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.ivanmurzak.unity.mcp": "0.30.1",
+    "com.ivanmurzak.unity.mcp": "0.31.0",
     "com.unity.ide.vscode": "1.2.5",
     "com.unity.probuilder": "5.2.4",
     "com.unity.test-framework": "1.1.33",
