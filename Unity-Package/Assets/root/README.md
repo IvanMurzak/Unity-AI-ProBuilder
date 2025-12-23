@@ -15,7 +15,7 @@
 
 <img width="100%" alt="Stats" src="https://github.com/IvanMurzak/Unity-AI-ProBuilder/raw/main/docs/img/ai-probuilder-glitch.gif"/>
 
-AI Tools for Unity ProBuilder. Let AI to work with ProBuilder features. Fast level prototyping. It is constructed on top of [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) platform.
+AI-powered 3D modeling tools for Unity ProBuilder. Enables AI assistants to create and manipulate editable meshes through natural language commands. Create primitive shapes, extrude faces, bevel edges, apply materials, merge objects, and perform advanced mesh operations like bridging and subdivision. Supports semantic face selection by direction (up, down, left, right) for intuitive editing. Perfect for rapid level prototyping and procedural geometry generation. Built on top of the [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) platform.
 
 [![DOWNLOAD INSTALLER](https://github.com/IvanMurzak/Unity-MCP/blob/main/docs/img/button/button_download.svg?raw=true)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.3/AI-ProBuilder-Installer.unitypackage)
 
