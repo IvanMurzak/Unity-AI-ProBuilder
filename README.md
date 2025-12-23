@@ -17,7 +17,13 @@
 
 AI-powered 3D modeling tools for Unity ProBuilder. Enables AI assistants to create and manipulate editable meshes through natural language commands. Create primitive shapes, extrude faces, bevel edges, apply materials, merge objects, and perform advanced mesh operations like bridging and subdivision. Supports semantic face selection by direction (up, down, left, right) for intuitive editing. Perfect for rapid level prototyping and procedural geometry generation. Built on top of the [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) platform.
 
-[![DOWNLOAD INSTALLER](https://github.com/IvanMurzak/Unity-MCP/blob/main/docs/img/button/button_download.svg?raw=true)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.3/AI-ProBuilder-Installer.unitypackage)
+### How to use
+
+- [Instructions](https://github.com/IvanMurzak/Unity-MCP?tab=readme-ov-file#step-2-install-mcp-client)
+- [Video Tutorial for Visual Studio Code](https://www.youtube.com/watch?v=ZhP7Ju91mOE)
+- [Video Tutorial for Visual Studio](https://www.youtube.com/watch?v=RGdak4T69mc)
+
+[![DOWNLOAD INSTALLER](https://github.com/IvanMurzak/Unity-MCP/blob/main/docs/img/button/button_download.svg?raw=true)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.4/AI-ProBuilder-Installer.unitypackage)
 
 ### Stability status
 
@@ -55,7 +61,7 @@ Advanced:
 
 ### Option 1 - Installer
 
-- **[⬇️ Download Installer](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.3/AI-ProBuilder-Installer.unitypackage)**
+- **[⬇️ Download Installer](https://github.com/IvanMurzak/Unity-AI-ProBuilder/releases/download/1.0.4/AI-ProBuilder-Installer.unitypackage)**
 - **📂 Import installer into Unity project**
   > - You can double-click on the file - Unity will open it automatically
   > - OR: Open Unity Editor first, then click on `Assets/Import Package/Custom Package`, and choose the file
