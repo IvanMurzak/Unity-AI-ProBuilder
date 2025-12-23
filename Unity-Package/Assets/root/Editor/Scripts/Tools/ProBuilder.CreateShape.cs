@@ -29,7 +29,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_CreateShape",
+            "probuilder-create-shape",
             Title = "Create a ProBuilder shape"
         )]
         [Description(@"Creates a new ProBuilder mesh shape in the scene. ProBuilder shapes are editable 3D meshes

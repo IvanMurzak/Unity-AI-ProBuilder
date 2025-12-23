@@ -28,7 +28,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_CreatePolyShape",
+            "probuilder-create-poly-shape",
             Title = "Create a ProBuilder shape from polygon points"
         )]
         [Description(@"Creates a 3D mesh from a 2D polygon outline. Perfect for:

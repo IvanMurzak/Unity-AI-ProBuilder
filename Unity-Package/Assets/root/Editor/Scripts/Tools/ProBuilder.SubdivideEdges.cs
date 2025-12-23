@@ -29,7 +29,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_SubdivideEdges",
+            "probuilder-subdivide-edges",
             Title = "Subdivide edges in a ProBuilder mesh"
         )]
         [Description(@"Inserts new vertices on edges, subdividing them into smaller segments.

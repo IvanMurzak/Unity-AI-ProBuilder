@@ -29,7 +29,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_ConnectEdges",
+            "probuilder-connect-edges",
             Title = "Connect edges in a ProBuilder mesh"
         )]
         [Description(@"Inserts new edges connecting the midpoints of selected edges within faces.

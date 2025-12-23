@@ -41,7 +41,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_SetPivot",
+            "probuilder-set-pivot",
             Title = "Set the pivot point of a ProBuilder mesh"
         )]
         [Description(@"Changes the pivot (origin) point of a ProBuilder mesh.

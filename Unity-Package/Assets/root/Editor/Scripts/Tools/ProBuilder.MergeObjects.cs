@@ -29,7 +29,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         [McpPluginTool
         (
-            "ProBuilder_MergeObjects",
+            "probuilder-merge-objects",
             Title = "Merge multiple ProBuilder meshes into one"
         )]
         [Description(@"Combines multiple ProBuilder meshes into a single mesh.
