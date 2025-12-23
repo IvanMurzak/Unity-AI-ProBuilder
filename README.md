@@ -1,4 +1,4 @@
-<h1 align="center"><a href="https://github.com/IvanMurzak/Unity-AI-ProBuilder">Unity AI ProBuilder</a></h1>
+<h1 align="center"><a href="https://github.com/IvanMurzak/Unity-AI-ProBuilder/?tab=readme-ov-file#unity-ai-probuilder">Unity AI ProBuilder</a></h1>
 
 <div align="center" width="100%">
 
