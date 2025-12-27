@@ -12,11 +12,11 @@
         "MCP",
         "Unity MCP"
     ],
-    "version": "1.0.4",
+    "version": "1.0.5",
     "unity": "2022.3",
     "description": "MCP Tools for ProBuilder - Enhance your Unity projects with AI-powered ProBuilder tools using the MCP framework.",
     "dependencies": {
-        "com.ivanmurzak.unity.mcp": "0.31.0",
+        "com.ivanmurzak.unity.mcp": "0.33.1",
         "com.unity.probuilder": "5.2.4"
     },
     "scopedRegistries": [
