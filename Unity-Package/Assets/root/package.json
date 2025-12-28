@@ -2,7 +2,7 @@
     "name": "com.ivanmurzak.unity.mcp.probuilder",
     "displayName": "AI ProBuilder",
     "author": {
-        "name": "IvanMurzak",
+        "name": "Ivan Murzak",
         "url": "https://github.com/IvanMurzak"
     },
     "keywords": [
@@ -12,7 +12,7 @@
         "MCP",
         "Unity MCP"
     ],
-    "version": "1.0.5",
+    "version": "1.0.6",
     "unity": "2022.3",
     "description": "MCP Tools for ProBuilder - Enhance your Unity projects with AI-powered ProBuilder tools using the MCP framework.",
     "dependencies": {
