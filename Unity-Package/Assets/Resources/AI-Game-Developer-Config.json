@@ -51,6 +51,7 @@
     "ProBuilder_Extrude",
     "ProBuilder_FlipNormals",
     "ProBuilder_GetMeshInfo",
+    "ProBuilder_GenerateUVs",
     "ProBuilder_MergeObjects",
     "ProBuilder_CreatePolyShape",
     "ProBuilder_SetFaceMaterial",
@@ -103,7 +104,8 @@
     "create-scriptableobject-data",
     "implement-object-pooling",
     "add-state-machine",
-    "setup-dependency-injection"
+    "setup-dependency-injection",
+    "generate-probuilder-uvs"
   ],
   "EnabledResources": [
     "GameObject_CurrentScene"

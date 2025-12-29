@@ -45,6 +45,7 @@ Core tools:
 
 Mesh operations:
 - `probuilder-flip-normals` - Reverse face normals
+- `probuilder-generate-uvs` - Generate UVs for faces
 - `probuilder-set-pivot` - Change mesh pivot point
 - `probuilder-merge-objects` - Combine multiple ProBuilder meshes
 
