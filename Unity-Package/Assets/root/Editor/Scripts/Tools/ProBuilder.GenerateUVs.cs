@@ -160,13 +160,13 @@ You can target specific faces by index or direction.")]
 
         private static bool TryInvokeUvEditing(Type uvEditingType, string methodName, ProBuilderMesh mesh, IList<Face> faces)
         {
-            var methods = uvEditingType.GetMethods(BindingFlags.Public | BindingFlags.Static)
+            var methods = uvEditingType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
                 .Where(method => method.Name == methodName);
 
             foreach (var method in methods)
             {
                 var parameters = method.GetParameters();
-                if (parameters.Length != 2)
+                if (parameters.Length < 2 || parameters.Length > 4)
                     continue;
 
                 if (!parameters[0].ParameterType.IsAssignableFrom(typeof(ProBuilderMesh)))
@@ -176,8 +176,25 @@ You can target specific faces by index or direction.")]
                 if (faceArg == null)
                     continue;
 
-                method.Invoke(null, new object[] { mesh, faceArg });
-                return true;
+                if (parameters.Length == 2)
+                {
+                    method.Invoke(null, new object[] { mesh, faceArg });
+                    return true;
+                }
+
+                if (parameters.Length == 3 && parameters[2].ParameterType == typeof(int))
+                {
+                    method.Invoke(null, new object[] { mesh, faceArg, 0 });
+                    return true;
+                }
+
+                if (parameters.Length == 4
+                    && parameters[2].ParameterType == typeof(Vector2)
+                    && parameters[3].ParameterType == typeof(int))
+                {
+                    method.Invoke(null, new object[] { mesh, faceArg, Vector2.zero, 0 });
+                    return true;
+                }
             }
 
             return false;
@@ -191,8 +208,11 @@ You can target specific faces by index or direction.")]
             if (parameterType.IsAssignableFrom(typeof(List<Face>)))
                 return faces.ToList();
 
-            if (parameterType.IsAssignableFrom(typeof(Face[])))
-                return faces.ToArray();
+            if (parameterType.IsAssignableFrom(typeof(IList<Face>)))
+                return faces.ToList();
+
+            if (parameterType.IsAssignableFrom(typeof(IEnumerable<Face>)))
+                return faces.ToList();
 
             return null;
         }

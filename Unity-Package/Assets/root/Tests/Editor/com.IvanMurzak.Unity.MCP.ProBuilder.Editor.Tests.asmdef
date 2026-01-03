@@ -4,10 +4,12 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
+        "Unity.ProBuilder",
         "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime",
         "com.IvanMurzak.Unity.MCP.ProBuilder.Editor",
         "com.IvanMurzak.Unity.MCP.Editor",
-        "com.IvanMurzak.Unity.MCP.Runtime"
+        "com.IvanMurzak.Unity.MCP.Runtime",
+        "com.IvanMurzak.Unity.MCP.Editor.Tests"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,9 +18,13 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "ReflectorNet.dll",
+        "McpPlugin.dll",
+        "McpPlugin.Common.dll"
     ],
     "autoReferenced": false,
+    "testAssemblies": true,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],

@@ -42,7 +42,9 @@ Examples:
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
             [Description("Path to the material asset (e.g., 'Assets/Materials/MyMaterial.mat') or material name.")]
-            string materialPath,
+            string materialPath = "",
+            [Description("Alternate material asset path (legacy parameter name).")]
+            string? materialAssetPath = null,
             [Description("Array of face indices to apply the material to. Use this OR faceDirection, not both. Use ProBuilder_GetMeshInfo to get valid face indices.")]
             int[]? faceIndices = null,
             [Description("Semantic face selection by direction. Use this OR faceIndices, not both.")]
@@ -63,6 +65,9 @@ Examples:
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
                 return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+
+            if (string.IsNullOrEmpty(materialPath))
+                materialPath = materialAssetPath ?? string.Empty;
 
             if (string.IsNullOrEmpty(materialPath))
                 return "[Error] Material path is empty. Please provide a valid material path.";
