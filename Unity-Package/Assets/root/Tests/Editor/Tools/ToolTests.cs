@@ -42,7 +42,7 @@ namespace com.IvanMurzak.Unity.MCP.ProBuilder.Editor.Tests.Tools
         }
 
         [Test]
-        public void ErrorMessagesStayReadable()
+        public void InvalidFaceIndex_ReturnsReadableErrorMessage()
         {
             var message = Tool_ProBuilder.Error.InvalidFaceIndex(2, 3);
             StringAssert.Contains("out of range", message);
