@@ -22,6 +22,7 @@ namespace com.IvanMurzak.Unity.MCP.ProBuilder.Editor.Tests
         public IEnumerator SetUp()
         {
             // Empty
+            yield break;
         }
     }
 }
