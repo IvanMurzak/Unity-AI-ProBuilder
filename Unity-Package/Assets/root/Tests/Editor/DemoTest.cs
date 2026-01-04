@@ -9,18 +9,17 @@
 */
 
 #nullable enable
-using System;
-using System.Linq;
-using System.Reflection;
+using System.Collections;
 using NUnit.Framework;
-using com.IvanMurzak.Unity.MCP.Editor.API;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace com.IvanMurzak.Unity.MCP.ProBuilder.Editor.Tests
 {
-    public class ProBuilderToolRegistrationTests
+    public partial class DemoTest
     {
-        [Test]
-        public void ExampleTest()
+        [UnitySetUp]
+        public IEnumerator SetUp()
         {
             // Empty
         }
