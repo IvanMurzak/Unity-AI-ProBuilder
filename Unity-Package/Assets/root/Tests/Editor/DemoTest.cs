@@ -9,36 +9,20 @@
 */
 
 #nullable enable
-using System.Collections;
+using System;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
+using com.IvanMurzak.Unity.MCP.Editor.API;
 
-namespace com.IvanMurzak.Unity.MCP.ProBuilder.Runtime.Tests
+namespace com.IvanMurzak.Unity.MCP.ProBuilder.Editor.Tests
 {
-    public partial class DemoTest
+    public class ProBuilderToolRegistrationTests
     {
-        [UnitySetUp]
-        public IEnumerator SetUp()
+        [Test]
+        public void ExampleTest()
         {
-            Debug.Log($"[{nameof(DemoTest)}] SetUp");
-            yield return null;
-        }
-        [UnityTearDown]
-        public IEnumerator TearDown()
-        {
-            Debug.Log($"[{nameof(DemoTest)}] TearDown");
-            yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator Always_Valid_Test()
-        {
-            Debug.Log($"[{nameof(DemoTest)}] Test Log Message ABC");
-            Debug.Log($"[{nameof(DemoTest)}] Test Log Message ABC 123");
-
-            Assert.IsTrue(true, "This test is a placeholder and should be replaced with actual test logic.");
-            yield return null;
+            // Empty
         }
     }
 }
