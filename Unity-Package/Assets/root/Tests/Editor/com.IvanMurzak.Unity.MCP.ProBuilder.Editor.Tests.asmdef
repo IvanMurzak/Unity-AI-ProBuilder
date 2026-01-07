@@ -28,7 +28,7 @@
         "McpPlugin.Common.dll",
         "R3.dll"
     ],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

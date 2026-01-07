@@ -4,7 +4,7 @@
     "references": [
         "UnityEngine.TestRunner",
         "com.IvanMurzak.Unity.MCP.Runtime",
-        "com.IvanMurzak.Unity.MCP.Runtime.Tests",
+        "com.IvanMurzak.Unity.MCP.Tests",
         "com.IvanMurzak.Unity.MCP.TestFiles",
         "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime"
     ],

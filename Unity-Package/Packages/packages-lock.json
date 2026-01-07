@@ -1,13 +1,13 @@
 {
   "dependencies": {
     "com.ivanmurzak.unity.mcp": {
-      "version": "0.36.2",
+      "version": "0.36.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.test-framework": "1.1.33",
         "com.unity.modules.uielements": "1.0.0",
-        "extensions.unity.playerprefsex": "2.1.0",
+        "extensions.unity.playerprefsex": "2.1.2",
         "org.nuget.microsoft.bcl.memory": "10.0.1",
         "org.nuget.microsoft.aspnetcore.signalr.client": "10.0.1",
         "org.nuget.microsoft.aspnetcore.signalr.protocols.json": "10.0.1",
@@ -67,7 +67,7 @@
       "url": "https://packages.unity.com"
     },
     "extensions.unity.playerprefsex": {
-      "version": "2.1.0",
+      "version": "2.1.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
