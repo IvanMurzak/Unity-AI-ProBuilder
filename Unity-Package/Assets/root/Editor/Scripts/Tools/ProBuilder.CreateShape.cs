@@ -9,15 +9,15 @@
 */
 
 #nullable enable
+
 using System;
 using System.ComponentModel;
-using System.Text;
+using System.Linq;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
 using com.IvanMurzak.Unity.MCP.Runtime.Utils;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.ProBuilder;
@@ -34,7 +34,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         )]
         [Description(@"Creates a new ProBuilder mesh shape in the scene. ProBuilder shapes are editable 3D meshes
 that can be modified using other ProBuilder tools like extrusion, beveling, etc.")]
-        public string CreateShape
+        public CreateShapeResponse CreateShape
         (
             [Description("The type of shape to create.")]
             ShapeType shapeType,
@@ -61,7 +61,7 @@ that can be modified using other ProBuilder tools like extrusion, beveling, etc.
             {
                 parentGo = parentGameObjectRef.FindGameObject(out var error);
                 if (error != null)
-                    return $"[Error] {error}";
+                    throw new Exception(error);
             }
 
             // Set defaults
@@ -74,7 +74,7 @@ that can be modified using other ProBuilder tools like extrusion, beveling, etc.
             var proBuilderMesh = ShapeGenerator.CreateShape(shapeType, PivotLocation.Center);
 
             if (proBuilderMesh == null)
-                return $"[Error] Failed to create ProBuilder shape of type '{shapeType}'.";
+                throw new Exception($"Failed to create ProBuilder shape of type '{shapeType}'.");
 
             var go = proBuilderMesh.gameObject;
             go.name = name ?? $"ProBuilder {shapeType}";
@@ -127,22 +127,35 @@ that can be modified using other ProBuilder tools like extrusion, beveling, etc.
             EditorUtility.SetDirty(go);
             EditorApplication.RepaintHierarchyWindow();
 
-            // Build response with mesh info
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Created ProBuilder {shapeType} shape.");
-            sb.AppendLine($"# GameObject Info:");
-            sb.AppendLine($"- Name: {go.name}");
-            sb.AppendLine($"- InstanceID: {go.GetInstanceID()}");
-            sb.AppendLine($"- Position: {go.transform.position}");
-            sb.AppendLine($"- Rotation: {go.transform.eulerAngles}");
-            sb.AppendLine($"- Scale: {go.transform.localScale}");
-            sb.AppendLine();
-            sb.AppendLine($"# ProBuilderMesh Info:");
-            sb.AppendLine($"- Face Count: {proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Vertex Count: {proBuilderMesh.vertexCount}");
-            sb.AppendLine($"- Edge Count: {proBuilderMesh.edgeCount}");
-
-            return sb.ToString();
+            return new CreateShapeResponse
+            {
+                gameObjectName = go.name,
+                instanceId = go.GetInstanceID(),
+                shapeType = shapeType.ToString(),
+                position = FormatVector3(go.transform.position),
+                rotation = FormatVector3(go.transform.eulerAngles),
+                scale = FormatVector3(go.transform.localScale),
+                faceCount = proBuilderMesh.faceCount,
+                vertexCount = proBuilderMesh.vertexCount,
+                edgeCount = proBuilderMesh.edgeCount
+            };
         });
+
+        #region CreateShape Response Classes
+
+        public class CreateShapeResponse
+        {
+            public string gameObjectName = string.Empty;
+            public int instanceId;
+            public string shapeType = string.Empty;
+            public string position = string.Empty;
+            public string rotation = string.Empty;
+            public string scale = string.Empty;
+            public int faceCount;
+            public int vertexCount;
+            public int edgeCount;
+        }
+
+        #endregion
     }
 }

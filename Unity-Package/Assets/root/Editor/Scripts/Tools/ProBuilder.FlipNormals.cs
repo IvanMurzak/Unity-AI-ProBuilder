@@ -9,9 +9,10 @@
 */
 
 #nullable enable
+
+using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -38,7 +39,7 @@ Examples:
 - Flip all faces: leave faceIndices and faceDirection empty
 - Flip top face only: faceDirection=Up
 - Flip specific faces: faceIndices=[0, 2, 4]")]
-        public string FlipNormals
+        public FlipNormalsResponse FlipNormals
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
@@ -50,23 +51,23 @@ Examples:
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRef?.IsValid != true)
-                return "[Error] Invalid GameObject reference provided.";
+                throw new Exception("Invalid GameObject reference provided.");
 
             var go = gameObjectRef.FindGameObject(out var error);
             if (error != null)
-                return $"[Error] {error}";
+                throw new Exception(error);
 
             if (go == null)
-                return Error.GameObjectNotFound();
+                throw new Exception(Error.GameObjectNotFound());
 
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
-                return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
             var faces = proBuilderMesh.faces;
             var faceCount = faces.Count();
             if (faceCount == 0)
-                return Error.MeshHasNoFaces();
+                throw new Exception(Error.MeshHasNoFaces());
 
             // Resolve face indices
             int[] resolvedFaceIndices;
@@ -81,7 +82,7 @@ Examples:
             {
                 var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
                 if (selectionError != null)
-                    return $"[Error] {selectionError}";
+                    throw new Exception(selectionError);
                 resolvedFaceIndices = selectedIndices!;
                 selectionMethod = $"by direction '{faceDirection.Value}'";
             }
@@ -96,7 +97,7 @@ Examples:
             var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
             if (invalidIndices.Any())
             {
-                return $"[Error] Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.";
+                throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
             }
 
             // Get faces to flip
@@ -110,9 +111,9 @@ Examples:
                     face.Reverse();
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return $"[Error] Failed to flip normals: {ex.Message}";
+                throw new Exception($"Failed to flip normals: {ex.Message}");
             }
 
             // Rebuild mesh
@@ -123,23 +124,27 @@ Examples:
             EditorUtility.SetDirty(proBuilderMesh);
             EditorUtility.SetDirty(go);
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Flipped normals on {resolvedFaceIndices.Length} face(s) {selectionMethod}.");
-            sb.AppendLine();
-            sb.AppendLine("# Result:");
-            sb.AppendLine($"- Face Selection: {selectionMethod}");
-            sb.AppendLine($"- Faces Flipped: {resolvedFaceIndices.Length}");
-            if (resolvedFaceIndices.Length <= 20)
+            return new FlipNormalsResponse
             {
-                sb.AppendLine($"- Face Indices: {string.Join(", ", resolvedFaceIndices)}");
-            }
-            sb.AppendLine();
-            sb.AppendLine("# Mesh Info:");
-            sb.AppendLine($"- Total Faces: {proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Total Vertices: {proBuilderMesh.vertexCount}");
-
-            return sb.ToString();
+                facesFlipped = resolvedFaceIndices.Length,
+                selectionMethod = selectionMethod,
+                faceIndices = resolvedFaceIndices.Length <= 20 ? resolvedFaceIndices : null,
+                totalFaceCount = proBuilderMesh.faceCount,
+                totalVertexCount = proBuilderMesh.vertexCount
+            };
         });
+
+        #region FlipNormals Response Classes
+
+        public class FlipNormalsResponse
+        {
+            public int facesFlipped;
+            public string selectionMethod = string.Empty;
+            public int[]? faceIndices;
+            public int totalFaceCount;
+            public int totalVertexCount;
+        }
+
+        #endregion
     }
 }

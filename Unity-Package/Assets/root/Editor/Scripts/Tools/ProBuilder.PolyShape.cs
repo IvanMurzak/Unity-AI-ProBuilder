@@ -9,9 +9,10 @@
 */
 
 #nullable enable
+
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -44,7 +45,7 @@ Examples:
 - Rectangle: points=[[0,0], [4,0], [4,3], [0,3]] height=2.5
 - L-shape: points=[[0,0], [3,0], [3,2], [1,2], [1,3], [0,3]] height=3
 - Triangle: points=[[0,0], [2,0], [1,1.7]] height=1")]
-        public string CreatePolyShape
+        public CreatePolyShapeResponse CreatePolyShape
         (
             [Description("2D polygon points as [x,z] coordinates. Minimum 3 points. Points should be in clockwise or counter-clockwise order. Example: [[0,0], [4,0], [4,3], [0,3]] creates a 4x3 rectangle.")]
             float[][] points,
@@ -67,13 +68,13 @@ Examples:
         {
             // Validate points
             if (points == null || points.Length < 3)
-                return "[Error] At least 3 polygon points are required to create a shape.";
+                throw new Exception("At least 3 polygon points are required to create a shape.");
 
             // Validate each point has x,z coordinates
             for (int i = 0; i < points.Length; i++)
             {
                 if (points[i] == null || points[i].Length < 2)
-                    return $"[Error] Point at index {i} must have at least 2 coordinates [x,z].";
+                    throw new Exception($"Point at index {i} must have at least 2 coordinates [x,z].");
             }
 
             // Find parent if provided
@@ -82,7 +83,7 @@ Examples:
             {
                 parentGo = parentGameObjectRef.FindGameObject(out var error);
                 if (error != null)
-                    return $"[Error] {error}";
+                    throw new Exception(error);
             }
 
             // Set defaults
@@ -101,7 +102,7 @@ Examples:
             var proBuilderMesh = go.AddComponent<ProBuilderMesh>();
 
             if (proBuilderMesh == null)
-                return "[Error] Failed to create ProBuilderMesh component.";
+                throw new Exception("Failed to create ProBuilderMesh component.");
 
             // Create the shape from polygon
             try
@@ -109,14 +110,14 @@ Examples:
                 var result = proBuilderMesh.CreateShapeFromPolygon(points3D, height, flipNormals);
                 if (result.status != ActionResult.Status.Success)
                 {
-                    Object.DestroyImmediate(go);
-                    return $"[Error] Failed to create polygon shape: {result.notification}";
+                    UnityEngine.Object.DestroyImmediate(go);
+                    throw new Exception($"Failed to create polygon shape: {result.notification}");
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                Object.DestroyImmediate(go);
-                return $"[Error] Failed to create polygon shape: {ex.Message}";
+                UnityEngine.Object.DestroyImmediate(go);
+                throw new Exception($"Failed to create polygon shape: {ex.Message}");
             }
 
             go.name = name ?? "ProBuilder PolyShape";
@@ -147,34 +148,60 @@ Examples:
                 ? meshFilter.sharedMesh.bounds
                 : new Bounds();
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Created ProBuilder PolyShape from {points.Length} points.");
-            sb.AppendLine();
-            sb.AppendLine("# GameObject Info:");
-            sb.AppendLine($"- Name: {go.name}");
-            sb.AppendLine($"- InstanceID: {go.GetInstanceID()}");
-            sb.AppendLine($"- Position: {go.transform.position}");
-            sb.AppendLine($"- Rotation: {go.transform.eulerAngles}");
-            sb.AppendLine();
-            sb.AppendLine("# Shape Info:");
-            sb.AppendLine($"- Points: {points.Length}");
-            sb.AppendLine($"- Height: {height}");
-            sb.AppendLine($"- Flip Normals: {flipNormals}");
-            sb.AppendLine($"- Bounds Size: {bounds.size}");
-            sb.AppendLine();
-            sb.AppendLine("# ProBuilderMesh Info:");
-            sb.AppendLine($"- Face Count: {proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Vertex Count: {proBuilderMesh.vertexCount}");
-            sb.AppendLine($"- Edge Count: {proBuilderMesh.edgeCount}");
-            sb.AppendLine();
-            sb.AppendLine("# Input Points:");
+            // Build input points for response
+            var inputPoints = new List<PointInfo>();
             for (int i = 0; i < points.Length; i++)
             {
-                sb.AppendLine($"  [{i}]: ({points[i][0]}, {points[i][1]})");
+                inputPoints.Add(new PointInfo
+                {
+                    index = i,
+                    x = points[i][0],
+                    z = points[i][1]
+                });
             }
 
-            return sb.ToString();
+            return new CreatePolyShapeResponse
+            {
+                gameObjectName = go.name,
+                instanceId = go.GetInstanceID(),
+                position = FormatVector3(go.transform.position),
+                rotation = FormatVector3(go.transform.eulerAngles),
+                pointCount = points.Length,
+                height = height,
+                flipNormals = flipNormals,
+                boundsSize = FormatVector3(bounds.size),
+                faceCount = proBuilderMesh.faceCount,
+                vertexCount = proBuilderMesh.vertexCount,
+                edgeCount = proBuilderMesh.edgeCount,
+                inputPoints = inputPoints
+            };
         });
+
+        #region CreatePolyShape Response Classes
+
+        public class CreatePolyShapeResponse
+        {
+            public string gameObjectName = string.Empty;
+            public int instanceId;
+            public string position = string.Empty;
+            public string rotation = string.Empty;
+            public int pointCount;
+            public float height;
+            public bool flipNormals;
+            public string boundsSize = string.Empty;
+            public int faceCount;
+            public int vertexCount;
+            public int edgeCount;
+            public List<PointInfo>? inputPoints;
+        }
+
+        public class PointInfo
+        {
+            public int index;
+            public float x;
+            public float z;
+        }
+
+        #endregion
     }
 }

@@ -9,8 +9,9 @@
 */
 
 #nullable enable
+
+using System;
 using System.ComponentModel;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -35,7 +36,7 @@ Useful for connecting separate parts of geometry or filling gaps.
 
 Example:
 - edgeA=[0,1], edgeB=[4,5] creates a quad face between the two edges")]
-        public string Bridge
+        public BridgeResponse Bridge
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
@@ -49,24 +50,24 @@ Example:
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRef?.IsValid != true)
-                return "[Error] Invalid GameObject reference provided.";
+                throw new Exception("Invalid GameObject reference provided.");
 
             var go = gameObjectRef.FindGameObject(out var error);
             if (error != null)
-                return $"[Error] {error}";
+                throw new Exception(error);
 
             if (go == null)
-                return Error.GameObjectNotFound();
+                throw new Exception(Error.GameObjectNotFound());
 
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
-                return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
             // Validate edges
             if (edgeA == null || edgeA.Length < 2)
-                return "[Error] edgeA must have exactly 2 vertex indices [vertexA, vertexB].";
+                throw new Exception("edgeA must have exactly 2 vertex indices [vertexA, vertexB].");
             if (edgeB == null || edgeB.Length < 2)
-                return "[Error] edgeB must have exactly 2 vertex indices [vertexA, vertexB].";
+                throw new Exception("edgeB must have exactly 2 vertex indices [vertexA, vertexB].");
 
             var edge1 = new Edge(edgeA[0], edgeA[1]);
             var edge2 = new Edge(edgeB[0], edgeB[1]);
@@ -79,14 +80,14 @@ Example:
             {
                 newFace = proBuilderMesh.Bridge(edge1, edge2, allowNonManifold);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return $"[Error] Failed to bridge edges: {ex.Message}";
+                throw new Exception($"Failed to bridge edges: {ex.Message}");
             }
 
             if (newFace == null)
             {
-                return "[Error] Bridge failed - could not create face between the specified edges. Ensure the edges are valid and not already connected.";
+                throw new Exception("Bridge failed - could not create face between the specified edges. Ensure the edges are valid and not already connected.");
             }
 
             // Rebuild mesh
@@ -109,22 +110,35 @@ Example:
                 }
             }
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Created bridge face between edges [{edgeA[0]},{edgeA[1]}] and [{edgeB[0]},{edgeB[1]}].");
-            sb.AppendLine();
-            sb.AppendLine("# Result:");
-            sb.AppendLine($"- Edge A: [{edgeA[0]} → {edgeA[1]}]");
-            sb.AppendLine($"- Edge B: [{edgeB[0]} → {edgeB[1]}]");
-            sb.AppendLine($"- New Face Index: {newFaceIndex}");
-            sb.AppendLine($"- Allow Non-Manifold: {allowNonManifold}");
-            sb.AppendLine();
-            sb.AppendLine("# Updated Mesh Info:");
-            sb.AppendLine($"- Face Count: {originalFaceCount} → {proBuilderMesh.faceCount} (+{proBuilderMesh.faceCount - originalFaceCount})");
-            sb.AppendLine($"- Vertex Count: {proBuilderMesh.vertexCount}");
-            sb.AppendLine($"- Edge Count: {proBuilderMesh.edgeCount}");
-
-            return sb.ToString();
+            return new BridgeResponse
+            {
+                edgeA = new int[] { edgeA[0], edgeA[1] },
+                edgeB = new int[] { edgeB[0], edgeB[1] },
+                newFaceIndex = newFaceIndex,
+                allowNonManifold = allowNonManifold,
+                faceCountBefore = originalFaceCount,
+                faceCountAfter = proBuilderMesh.faceCount,
+                facesAdded = proBuilderMesh.faceCount - originalFaceCount,
+                totalVertexCount = proBuilderMesh.vertexCount,
+                totalEdgeCount = proBuilderMesh.edgeCount
+            };
         });
+
+        #region Bridge Response Classes
+
+        public class BridgeResponse
+        {
+            public int[]? edgeA;
+            public int[]? edgeB;
+            public int newFaceIndex;
+            public bool allowNonManifold;
+            public int faceCountBefore;
+            public int faceCountAfter;
+            public int facesAdded;
+            public int totalVertexCount;
+            public int totalEdgeCount;
+        }
+
+        #endregion
     }
 }

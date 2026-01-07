@@ -9,9 +9,11 @@
 */
 
 #nullable enable
+
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -35,7 +37,7 @@ Use detail=""full"" for detailed face-by-face information.
 
 TIP: With semantic face selection (faceDirection parameter) in Extrude/DeleteFaces/SetFaceMaterial,
 you often don't need GetMeshInfo at all - just use faceDirection=""up"" etc. directly.")]
-        public string GetMeshInfo
+        public GetMeshInfoResponse GetMeshInfo
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
@@ -51,87 +53,88 @@ you often don't need GetMeshInfo at all - just use faceDirection=""up"" etc. dir
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRef?.IsValid != true)
-                return "[Error] Invalid GameObject reference provided.";
+                throw new Exception("Invalid GameObject reference provided.");
 
             var go = gameObjectRef.FindGameObject(out var error);
             if (error != null)
-                return $"[Error] {error}";
+                throw new Exception(error);
 
             if (go == null)
-                return Error.GameObjectNotFound();
+                throw new Exception(Error.GameObjectNotFound());
 
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
-                return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] ProBuilder Mesh Information for '{go.name}'");
-            sb.AppendLine();
+            var response = new GetMeshInfoResponse();
 
             // Basic info
-            sb.AppendLine("# Summary:");
-            sb.AppendLine($"- GameObject InstanceID: {go.GetInstanceID()}");
-            sb.AppendLine($"- Face Count: {proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Vertex Count: {proBuilderMesh.vertexCount}");
-            sb.AppendLine($"- Edge Count: {proBuilderMesh.edgeCount}");
-            sb.AppendLine($"- Triangle Count: {proBuilderMesh.triangleCount}");
-            sb.AppendLine();
+            response.gameObjectName = go.name;
+            response.instanceId = go.GetInstanceID();
+            response.faceCount = proBuilderMesh.faceCount;
+            response.vertexCount = proBuilderMesh.vertexCount;
+            response.edgeCount = proBuilderMesh.edgeCount;
+            response.triangleCount = proBuilderMesh.triangleCount;
 
             // Bounds
             var meshFilter = go.GetComponent<MeshFilter>();
-            var bounds = meshFilter != null ? meshFilter.sharedMesh.bounds : new Bounds();
-            sb.AppendLine("# Bounds:");
-            sb.AppendLine($"- Center: {bounds.center}");
-            sb.AppendLine($"- Size: {bounds.size}");
-            sb.AppendLine($"- Min: {bounds.min}");
-            sb.AppendLine($"- Max: {bounds.max}");
-            sb.AppendLine();
-
-            // Summary mode - condensed face direction info
-            if (detail == MeshInfoDetailLevel.Summary)
+            if (meshFilter != null && meshFilter.sharedMesh != null)
             {
-                var directionSummary = FaceSelectionHelper.GetFaceDirectionSummary(proBuilderMesh, out var otherFaces);
-                var faces = proBuilderMesh.faces;
-                var positions = proBuilderMesh.positions;
-
-                sb.AppendLine("# Face Directions (use with faceDirection parameter):");
-                foreach (var kvp in directionSummary)
+                var bounds = meshFilter.sharedMesh.bounds;
+                response.bounds = new BoundsInfo
                 {
-                    if (kvp.Value.Count > 0)
-                    {
-                        var dirName = kvp.Key;
-                        var faceList = kvp.Value;
-                        var centerStr = "";
-
-                        // Show center of first face in this direction
-                        if (faceList.Count > 0 && faceList[0] < faces.Count)
-                        {
-                            var center = FaceSelectionHelper.GetFaceCenter(faces[faceList[0]], positions);
-                            centerStr = $" (first at {center.x:F1}, {center.y:F1}, {center.z:F1})";
-                        }
-
-                        sb.AppendLine($"- {dirName}: faces [{string.Join(", ", faceList)}]{centerStr}");
-                    }
-                }
-                if (otherFaces.Count > 0)
-                {
-                    sb.AppendLine($"- other: faces [{string.Join(", ", otherFaces)}]");
-                }
-                sb.AppendLine();
-                sb.AppendLine("TIP: Use faceDirection=Up in Extrude/DeleteFaces/SetFaceMaterial instead of face indices.");
-                sb.AppendLine("Use detail=Full for detailed per-face information.");
+                    center = FormatVector3(bounds.center),
+                    size = FormatVector3(bounds.size),
+                    min = FormatVector3(bounds.min),
+                    max = FormatVector3(bounds.max)
+                };
             }
-            else
+
+            // Face directions
+            var directionSummary = FaceSelectionHelper.GetFaceDirectionSummary(proBuilderMesh, out var otherFaces);
+            var faces = proBuilderMesh.faces;
+            var positions = proBuilderMesh.positions;
+
+            response.faceDirections = new List<FaceDirectionInfo>();
+            foreach (var kvp in directionSummary)
             {
-                // Full mode - detailed face-by-face info
-                var faces = proBuilderMesh.faces;
-                var positions = proBuilderMesh.positions;
+                if (kvp.Value.Count > 0)
+                {
+                    var info = new FaceDirectionInfo
+                    {
+                        direction = kvp.Key.ToString(),
+                        faceIndices = kvp.Value.ToArray()
+                    };
+
+                    // Get center of first face in this direction
+                    if (kvp.Value.Count > 0 && kvp.Value[0] < faces.Count)
+                    {
+                        var center = FaceSelectionHelper.GetFaceCenter(faces[kvp.Value[0]], positions);
+                        info.firstFaceCenter = FormatVector3(center);
+                    }
+
+                    response.faceDirections.Add(info);
+                }
+            }
+
+            if (otherFaces.Count > 0)
+            {
+                response.faceDirections.Add(new FaceDirectionInfo
+                {
+                    direction = "other",
+                    faceIndices = otherFaces.ToArray()
+                });
+            }
+
+            // Full detail mode - detailed face-by-face info
+            if (detail == MeshInfoDetailLevel.Full)
+            {
                 var faceCount = faces.Count();
                 var facesToShow = maxFacesToShow < 0 ? faceCount : System.Math.Min(maxFacesToShow, faceCount);
 
-                sb.AppendLine($"# Faces (showing {facesToShow} of {faceCount}):");
-                sb.AppendLine("Use face indices for operations, or use faceDirection for semantic selection.");
-                sb.AppendLine();
+                response.faces = new List<FaceInfo>();
+                response.facesShown = facesToShow;
+                response.facesTotal = faceCount;
 
                 for (int i = 0; i < facesToShow; i++)
                 {
@@ -139,7 +142,7 @@ you often don't need GetMeshInfo at all - just use faceDirection=""up"" etc. dir
                     var faceVertices = face.distinctIndexes;
                     var faceEdges = face.edges;
 
-                    // Calculate face center and normal
+                    // Calculate face center
                     var center = Vector3.zero;
                     foreach (var vertIndex in faceVertices)
                     {
@@ -148,51 +151,118 @@ you often don't need GetMeshInfo at all - just use faceDirection=""up"" etc. dir
                     var vertCount = faceVertices.Count();
                     center /= vertCount;
 
-                    sb.AppendLine($"## Face {i}:");
-                    sb.AppendLine($"  - Vertex Count: {vertCount}");
-                    sb.AppendLine($"  - Triangle Count: {face.indexes.Count() / 3}");
-                    sb.AppendLine($"  - Center (approx): ({center.x:F2}, {center.y:F2}, {center.z:F2})");
+                    var faceInfo = new FaceInfo
+                    {
+                        index = i,
+                        vertexCount = vertCount,
+                        triangleCount = face.indexes.Count() / 3,
+                        center = FormatVector3(center)
+                    };
 
                     if (includeVertexPositions)
                     {
-                        sb.AppendLine($"  - Vertex Positions:");
+                        faceInfo.vertices = new List<VertexInfo>();
                         foreach (var vertIndex in faceVertices)
                         {
                             var pos = positions[vertIndex];
-                            sb.AppendLine($"    - [{vertIndex}]: ({pos.x:F3}, {pos.y:F3}, {pos.z:F3})");
+                            faceInfo.vertices.Add(new VertexInfo
+                            {
+                                index = vertIndex,
+                                position = FormatVector3(pos)
+                            });
                         }
                     }
 
                     if (includeEdges)
                     {
-                        sb.AppendLine($"  - Edges ({faceEdges.Count()}):");
+                        faceInfo.edges = new List<EdgeInfo>();
                         foreach (var edge in faceEdges)
                         {
                             var p1 = positions[edge.a];
                             var p2 = positions[edge.b];
-                            sb.AppendLine($"    - [{edge.a} -> {edge.b}]: ({p1.x:F2},{p1.y:F2},{p1.z:F2}) to ({p2.x:F2},{p2.y:F2},{p2.z:F2})");
+                            faceInfo.edges.Add(new EdgeInfo
+                            {
+                                vertexA = edge.a,
+                                vertexB = edge.b,
+                                positionA = FormatVector3(p1),
+                                positionB = FormatVector3(p2)
+                            });
                         }
                     }
-                    sb.AppendLine();
-                }
 
-                if (facesToShow < faceCount)
-                {
-                    sb.AppendLine($"... and {faceCount - facesToShow} more faces. Use maxFacesToShow=-1 to see all.");
+                    response.faces.Add(faceInfo);
                 }
 
                 // Unique edges summary
                 if (includeEdges)
                 {
                     var allEdges = proBuilderMesh.faces.SelectMany(f => f.edges).Distinct().ToList();
-                    sb.AppendLine();
-                    sb.AppendLine($"# Unique Edges Summary:");
-                    sb.AppendLine($"Total unique edges: {allEdges.Count}");
-                    sb.AppendLine("Use edge vertex pairs for bevel operations.");
+                    response.uniqueEdgeCount = allEdges.Count;
                 }
             }
 
-            return sb.ToString();
+            return response;
         });
+
+        private static string FormatVector3(Vector3 v) => $"({v.x:F2}, {v.y:F2}, {v.z:F2})";
+
+        #region Response Data Classes
+
+        public class GetMeshInfoResponse
+        {
+            public string gameObjectName = string.Empty;
+            public int instanceId;
+            public int faceCount;
+            public int vertexCount;
+            public int edgeCount;
+            public int triangleCount;
+            public BoundsInfo? bounds;
+            public List<FaceDirectionInfo>? faceDirections;
+            public List<FaceInfo>? faces;
+            public int? facesShown;
+            public int? facesTotal;
+            public int? uniqueEdgeCount;
+        }
+
+        public class BoundsInfo
+        {
+            public string center = string.Empty;
+            public string size = string.Empty;
+            public string min = string.Empty;
+            public string max = string.Empty;
+        }
+
+        public class FaceDirectionInfo
+        {
+            public string direction = string.Empty;
+            public int[]? faceIndices;
+            public string? firstFaceCenter;
+        }
+
+        public class FaceInfo
+        {
+            public int index;
+            public int vertexCount;
+            public int triangleCount;
+            public string center = string.Empty;
+            public List<VertexInfo>? vertices;
+            public List<EdgeInfo>? edges;
+        }
+
+        public class VertexInfo
+        {
+            public int index;
+            public string position = string.Empty;
+        }
+
+        public class EdgeInfo
+        {
+            public int vertexA;
+            public int vertexB;
+            public string positionA = string.Empty;
+            public string positionB = string.Empty;
+        }
+
+        #endregion
     }
 }

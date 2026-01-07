@@ -9,9 +9,10 @@
 */
 
 #nullable enable
+
+using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -38,7 +39,7 @@ Deleting faces creates holes in the mesh or removes geometry entirely.
 Examples:
 - Delete bottom face: faceDirection=""down""
 - Delete specific faces: faceIndices=[0, 2, 4]")]
-        public string DeleteFaces
+        public DeleteFacesResponse DeleteFaces
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
@@ -50,18 +51,18 @@ Examples:
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRef?.IsValid != true)
-                return "[Error] Invalid GameObject reference provided.";
+                throw new Exception("Invalid GameObject reference provided.");
 
             var go = gameObjectRef.FindGameObject(out var error);
             if (error != null)
-                return $"[Error] {error}";
+                throw new Exception(error);
 
             if (go == null)
-                return Error.GameObjectNotFound();
+                throw new Exception(Error.GameObjectNotFound());
 
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
-                return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
             // Resolve face indices from either direct indices or semantic direction
             int[] resolvedFaceIndices;
@@ -76,19 +77,19 @@ Examples:
             {
                 var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
                 if (selectionError != null)
-                    return $"[Error] {selectionError}";
+                    throw new Exception(selectionError);
                 resolvedFaceIndices = selectedIndices!;
                 selectionMethod = $"by direction '{faceDirection.Value}'";
             }
             else
             {
-                return "[Error] Either faceIndices or faceDirection must be provided.";
+                throw new Exception("Either faceIndices or faceDirection must be provided.");
             }
 
             var faces = proBuilderMesh.faces;
             var faceCount = faces.Count();
             if (faceCount == 0)
-                return Error.MeshHasNoFaces();
+                throw new Exception(Error.MeshHasNoFaces());
 
             // Get unique face indices to handle duplicates
             var uniqueFaceIndices = resolvedFaceIndices.Distinct().ToArray();
@@ -97,13 +98,13 @@ Examples:
             var invalidIndices = uniqueFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
             if (invalidIndices.Any())
             {
-                return $"[Error] Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.";
+                throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
             }
 
             // Check if we're deleting all faces
             if (uniqueFaceIndices.Length >= faceCount)
             {
-                return "[Error] Cannot delete all faces from a mesh. At least one face must remain.";
+                throw new Exception("Cannot delete all faces from a mesh. At least one face must remain.");
             }
 
             var originalFaceCount = proBuilderMesh.faceCount;
@@ -117,9 +118,9 @@ Examples:
             {
                 proBuilderMesh.DeleteFaces(facesToDelete);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return $"[Error] Failed to delete faces: {ex.Message}";
+                throw new Exception($"Failed to delete faces: {ex.Message}");
             }
 
             // Rebuild mesh
@@ -130,24 +131,33 @@ Examples:
             EditorUtility.SetDirty(proBuilderMesh);
             EditorUtility.SetDirty(go);
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Deleted {uniqueFaceIndices.Length} face(s) {selectionMethod} from the mesh.");
-            sb.AppendLine();
-            sb.AppendLine("# Result:");
-            sb.AppendLine($"- Face Selection: {selectionMethod}");
-            sb.AppendLine($"- Deleted Face Indices: {string.Join(", ", uniqueFaceIndices)}");
-            sb.AppendLine($"- Faces Removed: {originalFaceCount - proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Vertices Removed: {originalVertexCount - proBuilderMesh.vertexCount}");
-            sb.AppendLine();
-            sb.AppendLine("# Updated Mesh Info:");
-            sb.AppendLine($"- Total Face Count: {proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Total Vertex Count: {proBuilderMesh.vertexCount}");
-            sb.AppendLine($"- Total Edge Count: {proBuilderMesh.edgeCount}");
-            sb.AppendLine();
-            sb.AppendLine("Note: Face indices have changed after deletion. Use ProBuilder_GetMeshInfo to get updated indices.");
-
-            return sb.ToString();
+            return new DeleteFacesResponse
+            {
+                deletedFaceCount = uniqueFaceIndices.Length,
+                selectionMethod = selectionMethod,
+                deletedFaceIndices = uniqueFaceIndices,
+                facesRemoved = originalFaceCount - proBuilderMesh.faceCount,
+                verticesRemoved = originalVertexCount - proBuilderMesh.vertexCount,
+                totalFaceCount = proBuilderMesh.faceCount,
+                totalVertexCount = proBuilderMesh.vertexCount,
+                totalEdgeCount = proBuilderMesh.edgeCount
+            };
         });
+
+        #region DeleteFaces Response Classes
+
+        public class DeleteFacesResponse
+        {
+            public int deletedFaceCount;
+            public string selectionMethod = string.Empty;
+            public int[]? deletedFaceIndices;
+            public int facesRemoved;
+            public int verticesRemoved;
+            public int totalFaceCount;
+            public int totalVertexCount;
+            public int totalEdgeCount;
+        }
+
+        #endregion
     }
 }

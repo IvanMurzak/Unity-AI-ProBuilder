@@ -9,10 +9,11 @@
 */
 
 #nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -37,7 +38,7 @@ Useful for optimizing draw calls or creating a unified object from parts.
 The first mesh in the list becomes the target that others merge into.
 
 Example: Merge a table made of separate leg and top meshes into one object.")]
-        public string MergeObjects
+        public MergeObjectsResponse MergeObjects
         (
             [Description("Array of GameObject references with ProBuilderMesh components to merge. First object becomes the merge target.")]
             GameObjectRef[] gameObjectRefs,
@@ -47,7 +48,7 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRefs == null || gameObjectRefs.Length < 2)
-                return "[Error] At least 2 GameObjects are required for merging.";
+                throw new Exception("At least 2 GameObjects are required for merging.");
 
             // Find all GameObjects and their ProBuilderMesh components
             var meshes = new List<ProBuilderMesh>();
@@ -57,18 +58,18 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
             {
                 var goRef = gameObjectRefs[i];
                 if (goRef?.IsValid != true)
-                    return $"[Error] Invalid GameObject reference at index {i}.";
+                    throw new Exception($"Invalid GameObject reference at index {i}.");
 
                 var go = goRef.FindGameObject(out var error);
                 if (error != null)
-                    return $"[Error] {error}";
+                    throw new Exception(error);
 
                 if (go == null)
-                    return $"[Error] GameObject not found at index {i}.";
+                    throw new Exception($"GameObject not found at index {i}.");
 
                 var pbMesh = go.GetComponent<ProBuilderMesh>();
                 if (pbMesh == null)
-                    return $"[Error] GameObject '{go.name}' at index {i} does not have a ProBuilderMesh component.";
+                    throw new Exception($"GameObject '{go.name}' at index {i} does not have a ProBuilderMesh component.");
 
                 meshes.Add(pbMesh);
                 gameObjects.Add(go);
@@ -88,14 +89,14 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
             {
                 resultMeshes = CombineMeshes.Combine(meshes, targetMesh);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return $"[Error] Failed to merge meshes: {ex.Message}";
+                throw new Exception($"Failed to merge meshes: {ex.Message}");
             }
 
             if (resultMeshes == null || resultMeshes.Count == 0)
             {
-                return "[Error] Merge failed - no meshes returned.";
+                throw new Exception("Merge failed - no meshes returned.");
             }
 
             // Delete source objects if requested (skip the target)
@@ -106,7 +107,7 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
                 {
                     if (gameObjects[i] != null)
                     {
-                        Object.DestroyImmediate(gameObjects[i]);
+                        UnityEngine.Object.DestroyImmediate(gameObjects[i]);
                         deletedCount++;
                     }
                 }
@@ -123,38 +124,79 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
 
             EditorApplication.RepaintHierarchyWindow();
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Merged {meshes.Count} ProBuilder meshes into {resultMeshes.Count} mesh(es).");
-            sb.AppendLine();
-            sb.AppendLine("# Source Objects:");
+            // Build source objects info for response
+            var sourceObjects = new List<SourceObjectInfo>();
             for (int i = 0; i < originalNames.Count; i++)
             {
-                var status = i == 0 ? "(target)" : (deleteSourceObjects ? "(deleted)" : "(kept)");
-                sb.AppendLine($"  [{i}]: {originalNames[i]} {status}");
+                sourceObjects.Add(new SourceObjectInfo
+                {
+                    index = i,
+                    name = originalNames[i],
+                    status = i == 0 ? "target" : (deleteSourceObjects ? "deleted" : "kept")
+                });
             }
-            sb.AppendLine();
-            sb.AppendLine("# Result:");
-            sb.AppendLine($"- Target Object: {targetGo.name}");
-            sb.AppendLine($"- Target InstanceID: {targetGo.GetInstanceID()}");
-            sb.AppendLine($"- Result Mesh Count: {resultMeshes.Count}");
-            sb.AppendLine($"- Objects Deleted: {deletedCount}");
-            sb.AppendLine();
-            sb.AppendLine("# Merged Mesh Info:");
-            sb.AppendLine($"- Total Faces: {totalFacesBefore} → {resultMeshes.Sum(m => m.faceCount)}");
-            sb.AppendLine($"- Total Vertices: {totalVerticesBefore} → {resultMeshes.Sum(m => m.vertexCount)}");
 
+            // Build additional meshes info if multiple were created
+            List<AdditionalMeshInfo>? additionalMeshes = null;
             if (resultMeshes.Count > 1)
             {
-                sb.AppendLine();
-                sb.AppendLine("Note: Multiple meshes were created due to vertex limit. New meshes:");
+                additionalMeshes = new List<AdditionalMeshInfo>();
                 for (int i = 1; i < resultMeshes.Count; i++)
                 {
-                    sb.AppendLine($"  - {resultMeshes[i].gameObject.name} (InstanceID: {resultMeshes[i].gameObject.GetInstanceID()})");
+                    additionalMeshes.Add(new AdditionalMeshInfo
+                    {
+                        name = resultMeshes[i].gameObject.name,
+                        instanceId = resultMeshes[i].gameObject.GetInstanceID()
+                    });
                 }
             }
 
-            return sb.ToString();
+            return new MergeObjectsResponse
+            {
+                mergedMeshCount = meshes.Count,
+                resultMeshCount = resultMeshes.Count,
+                targetObjectName = targetGo.name,
+                targetInstanceId = targetGo.GetInstanceID(),
+                objectsDeleted = deletedCount,
+                totalFacesBefore = totalFacesBefore,
+                totalFacesAfter = resultMeshes.Sum(m => m.faceCount),
+                totalVerticesBefore = totalVerticesBefore,
+                totalVerticesAfter = resultMeshes.Sum(m => m.vertexCount),
+                sourceObjects = sourceObjects,
+                additionalMeshes = additionalMeshes
+            };
         });
+
+        #region MergeObjects Response Classes
+
+        public class MergeObjectsResponse
+        {
+            public int mergedMeshCount;
+            public int resultMeshCount;
+            public string targetObjectName = string.Empty;
+            public int targetInstanceId;
+            public int objectsDeleted;
+            public int totalFacesBefore;
+            public int totalFacesAfter;
+            public int totalVerticesBefore;
+            public int totalVerticesAfter;
+            public List<SourceObjectInfo>? sourceObjects;
+            public List<AdditionalMeshInfo>? additionalMeshes;
+        }
+
+        public class SourceObjectInfo
+        {
+            public int index;
+            public string name = string.Empty;
+            public string status = string.Empty;
+        }
+
+        public class AdditionalMeshInfo
+        {
+            public string name = string.Empty;
+            public int instanceId;
+        }
+
+        #endregion
     }
 }

@@ -9,10 +9,11 @@
 */
 
 #nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -39,7 +40,7 @@ Extrusion creates new geometry by pushing faces outward (or inward with negative
 Examples:
 - Extrude top face: faceDirection=""up""
 - Extrude specific faces: faceIndices=[0, 2, 4]")]
-        public string Extrude
+        public ExtrudeResponse Extrude
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
@@ -55,18 +56,18 @@ Examples:
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRef?.IsValid != true)
-                return "[Error] Invalid GameObject reference provided.";
+                throw new Exception("Invalid GameObject reference provided.");
 
             var go = gameObjectRef.FindGameObject(out var error);
             if (error != null)
-                return $"[Error] {error}";
+                throw new Exception(error);
 
             if (go == null)
-                return Error.GameObjectNotFound();
+                throw new Exception(Error.GameObjectNotFound());
 
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
-                return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
             // Resolve face indices from either direct indices or semantic direction
             int[] resolvedFaceIndices;
@@ -81,25 +82,25 @@ Examples:
             {
                 var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
                 if (selectionError != null)
-                    return $"[Error] {selectionError}";
+                    throw new Exception(selectionError);
                 resolvedFaceIndices = selectedIndices!;
                 selectionMethod = $"by direction '{faceDirection.Value}'";
             }
             else
             {
-                return "[Error] Either faceIndices or faceDirection must be provided.";
+                throw new Exception("Either faceIndices or faceDirection must be provided.");
             }
 
             var faces = proBuilderMesh.faces;
             var faceCount = faces.Count();
             if (faceCount == 0)
-                return Error.MeshHasNoFaces();
+                throw new Exception(Error.MeshHasNoFaces());
 
             // Validate face indices
             var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
             if (invalidIndices.Any())
             {
-                return $"[Error] Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.";
+                throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
             }
 
             // Get the faces to extrude
@@ -111,14 +112,14 @@ Examples:
             {
                 newFaces = proBuilderMesh.Extrude(facesToExtrude, extrudeMethod, distance);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return Error.ExtrusionFailed(ex.Message);
+                throw new Exception(Error.ExtrusionFailed(ex.Message));
             }
 
             if (newFaces == null || newFaces.Length == 0)
             {
-                return Error.ExtrusionFailed("No new faces were created. The operation may not be valid for this mesh configuration.");
+                throw new Exception(Error.ExtrusionFailed("No new faces were created. The operation may not be valid for this mesh configuration."));
             }
 
             // Rebuild mesh
@@ -129,24 +130,7 @@ Examples:
             EditorUtility.SetDirty(proBuilderMesh);
             EditorUtility.SetDirty(go);
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Extruded {facesToExtrude.Length} face(s) {selectionMethod} by {distance} units.");
-            sb.AppendLine();
-            sb.AppendLine("# Result:");
-            sb.AppendLine($"- Face Selection: {selectionMethod}");
-            sb.AppendLine($"- Extruded Face Indices: {string.Join(", ", resolvedFaceIndices)}");
-            sb.AppendLine($"- Extrude Method: {extrudeMethod}");
-            sb.AppendLine($"- Distance: {distance}");
-            sb.AppendLine($"- New Faces Created: {newFaces.Length}");
-            sb.AppendLine();
-            sb.AppendLine("# Updated Mesh Info:");
-            sb.AppendLine($"- Total Face Count: {proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Total Vertex Count: {proBuilderMesh.vertexCount}");
-            sb.AppendLine($"- Total Edge Count: {proBuilderMesh.edgeCount}");
-            sb.AppendLine();
-
-            // Show new face indices
+            // Find new face indices
             var allFaces = proBuilderMesh.faces;
             var newFaceIndices = new List<int>();
             var allFaceCount = allFaces.Count();
@@ -156,13 +140,37 @@ Examples:
                     newFaceIndices.Add(i);
             }
 
-            if (newFaceIndices.Any())
+            return new ExtrudeResponse
             {
-                sb.AppendLine($"# New Face Indices (for further operations):");
-                sb.AppendLine($"  {string.Join(", ", newFaceIndices)}");
-            }
-
-            return sb.ToString();
+                extrudedFaceCount = facesToExtrude.Length,
+                selectionMethod = selectionMethod,
+                extrudedFaceIndices = resolvedFaceIndices,
+                extrudeMethod = extrudeMethod.ToString(),
+                distance = distance,
+                newFacesCreated = newFaces.Length,
+                newFaceIndices = newFaceIndices.ToArray(),
+                totalFaceCount = proBuilderMesh.faceCount,
+                totalVertexCount = proBuilderMesh.vertexCount,
+                totalEdgeCount = proBuilderMesh.edgeCount
+            };
         });
+
+        #region Extrude Response Classes
+
+        public class ExtrudeResponse
+        {
+            public int extrudedFaceCount;
+            public string selectionMethod = string.Empty;
+            public int[]? extrudedFaceIndices;
+            public string extrudeMethod = string.Empty;
+            public float distance;
+            public int newFacesCreated;
+            public int[]? newFaceIndices;
+            public int totalFaceCount;
+            public int totalVertexCount;
+            public int totalEdgeCount;
+        }
+
+        #endregion
     }
 }
