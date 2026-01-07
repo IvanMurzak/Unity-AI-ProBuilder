@@ -9,9 +9,11 @@
 */
 
 #nullable enable
+
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -37,7 +39,7 @@ This enables multi-material meshes where different faces have different material
 Examples:
 - Set material on top face: faceDirection=""up""
 - Set material on specific faces: faceIndices=[0, 2, 4]")]
-        public string SetFaceMaterial
+        public SetFaceMaterialResponse SetFaceMaterial
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
@@ -51,21 +53,21 @@ Examples:
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRef?.IsValid != true)
-                return "[Error] Invalid GameObject reference provided.";
+                throw new Exception("Invalid GameObject reference provided.");
 
             var go = gameObjectRef.FindGameObject(out var error);
             if (error != null)
-                return $"[Error] {error}";
+                throw new Exception(error);
 
             if (go == null)
-                return Error.GameObjectNotFound();
+                throw new Exception(Error.GameObjectNotFound());
 
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
-                return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
             if (string.IsNullOrEmpty(materialPath))
-                return "[Error] Material path is empty. Please provide a valid material path.";
+                throw new Exception("Material path is empty. Please provide a valid material path.");
 
             // Resolve face indices from either direct indices or semantic direction
             int[] resolvedFaceIndices;
@@ -80,13 +82,13 @@ Examples:
             {
                 var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
                 if (selectionError != null)
-                    return $"[Error] {selectionError}";
+                    throw new Exception(selectionError);
                 resolvedFaceIndices = selectedIndices!;
                 selectionMethod = $"by direction '{faceDirection.Value}'";
             }
             else
             {
-                return "[Error] Either faceIndices or faceDirection must be provided.";
+                throw new Exception("Either faceIndices or faceDirection must be provided.");
             }
 
             // Try to load the material
@@ -111,26 +113,26 @@ Examples:
 
             if (material == null)
             {
-                return $"[Error] Material not found at path '{materialPath}'. Ensure the path is correct or the material exists in the project.";
+                throw new Exception($"Material not found at path '{materialPath}'. Ensure the path is correct or the material exists in the project.");
             }
 
             var faces = proBuilderMesh.faces;
             var faceCount = faces.Count();
             if (faceCount == 0)
-                return Error.MeshHasNoFaces();
+                throw new Exception(Error.MeshHasNoFaces());
 
             // Validate face indices
             var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
             if (invalidIndices.Any())
             {
-                return $"[Error] Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.";
+                throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
             }
 
             // Get current materials on the renderer
             var renderer = go.GetComponent<MeshRenderer>();
             if (renderer == null)
             {
-                return "[Error] No MeshRenderer found on the GameObject.";
+                throw new Exception("No MeshRenderer found on the GameObject.");
             }
 
             var materials = renderer.sharedMaterials.ToList();
@@ -160,24 +162,45 @@ Examples:
             EditorUtility.SetDirty(renderer);
             EditorUtility.SetDirty(go);
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Applied material '{material.name}' to {resolvedFaceIndices.Length} face(s) {selectionMethod}.");
-            sb.AppendLine();
-            sb.AppendLine("# Result:");
-            sb.AppendLine($"- Material: {material.name}");
-            sb.AppendLine($"- Material Index: {materialIndex}");
-            sb.AppendLine($"- Face Selection: {selectionMethod}");
-            sb.AppendLine($"- Faces Updated: {string.Join(", ", resolvedFaceIndices)}");
-            sb.AppendLine();
-            sb.AppendLine("# Mesh Materials:");
+            // Build materials list for response
+            var meshMaterials = new List<MaterialInfo>();
             for (int i = 0; i < renderer.sharedMaterials.Length; i++)
             {
                 var mat = renderer.sharedMaterials[i];
-                sb.AppendLine($"  [{i}]: {(mat != null ? mat.name : "null")}");
+                meshMaterials.Add(new MaterialInfo
+                {
+                    index = i,
+                    name = mat != null ? mat.name : "null"
+                });
             }
 
-            return sb.ToString();
+            return new SetFaceMaterialResponse
+            {
+                materialName = material.name,
+                materialIndex = materialIndex,
+                selectionMethod = selectionMethod,
+                facesUpdated = resolvedFaceIndices,
+                meshMaterials = meshMaterials
+            };
         });
+
+        #region SetFaceMaterial Response Classes
+
+        public class SetFaceMaterialResponse
+        {
+            public string materialName = string.Empty;
+            public int materialIndex;
+            public string selectionMethod = string.Empty;
+            public int[]? facesUpdated;
+            public List<MaterialInfo>? meshMaterials;
+        }
+
+        public class MaterialInfo
+        {
+            public int index;
+            public string name = string.Empty;
+        }
+
+        #endregion
     }
 }

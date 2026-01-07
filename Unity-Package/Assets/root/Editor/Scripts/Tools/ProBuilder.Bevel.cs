@@ -9,10 +9,10 @@
 */
 
 #nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
@@ -35,7 +35,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [Description(@"Bevels selected edges of a ProBuilder mesh, creating chamfered corners.
 Use ProBuilder_GetMeshInfo to identify edges by their vertex pairs.
 Beveling replaces sharp edges with angled faces for a smoother appearance.")]
-        public string Bevel
+        public BevelResponse Bevel
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
@@ -47,21 +47,21 @@ Beveling replaces sharp edges with angled faces for a smoother appearance.")]
         => MainThread.Instance.Run(() =>
         {
             if (gameObjectRef?.IsValid != true)
-                return "[Error] Invalid GameObject reference provided.";
+                throw new Exception("Invalid GameObject reference provided.");
 
             var go = gameObjectRef.FindGameObject(out var error);
             if (error != null)
-                return $"[Error] {error}";
+                throw new Exception(error);
 
             if (go == null)
-                return Error.GameObjectNotFound();
+                throw new Exception(Error.GameObjectNotFound());
 
             var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
             if (proBuilderMesh == null)
-                return Error.ProBuilderMeshNotFound(go.GetInstanceID());
+                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
             if (edges == null || edges.Length == 0)
-                return Error.NoEdgesProvided();
+                throw new Exception(Error.NoEdgesProvided());
 
             // Validate and convert edges
             var edgeList = new List<Edge>();
@@ -71,16 +71,16 @@ Beveling replaces sharp edges with angled faces for a smoother appearance.")]
             {
                 if (edgeDef == null || edgeDef.Length != 2)
                 {
-                    return "[Error] Each edge must be defined as an array of exactly 2 vertex indices. Example: [0, 1]";
+                    throw new Exception("Each edge must be defined as an array of exactly 2 vertex indices. Example: [0, 1]");
                 }
 
                 var vertA = edgeDef[0];
                 var vertB = edgeDef[1];
 
                 if (vertA < 0 || vertA >= vertexCount)
-                    return $"[Error] Vertex index {vertA} is out of range. Valid range: 0 to {vertexCount - 1}.";
+                    throw new Exception($"Vertex index {vertA} is out of range. Valid range: 0 to {vertexCount - 1}.");
                 if (vertB < 0 || vertB >= vertexCount)
-                    return $"[Error] Vertex index {vertB} is out of range. Valid range: 0 to {vertexCount - 1}.";
+                    throw new Exception($"Vertex index {vertB} is out of range. Valid range: 0 to {vertexCount - 1}.");
 
                 edgeList.Add(new Edge(vertA, vertB));
             }
@@ -94,14 +94,14 @@ Beveling replaces sharp edges with angled faces for a smoother appearance.")]
             {
                 newFaces = UnityEngine.ProBuilder.MeshOperations.Bevel.BevelEdges(proBuilderMesh, edgeList, amount);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return Error.BevelFailed(ex.Message);
+                throw new Exception(Error.BevelFailed(ex.Message));
             }
 
             if (newFaces == null || newFaces.Count == 0)
             {
-                return Error.BevelFailed("No new faces were created. The edges may not be valid for beveling or may already be at maximum bevel.");
+                throw new Exception(Error.BevelFailed("No new faces were created. The edges may not be valid for beveling or may already be at maximum bevel."));
             }
 
             // Rebuild mesh
@@ -112,21 +112,29 @@ Beveling replaces sharp edges with angled faces for a smoother appearance.")]
             EditorUtility.SetDirty(proBuilderMesh);
             EditorUtility.SetDirty(go);
 
-            // Build response
-            var sb = new StringBuilder();
-            sb.AppendLine($"[Success] Beveled {edgeList.Count} edge(s) with amount {amount}.");
-            sb.AppendLine();
-            sb.AppendLine("# Result:");
-            sb.AppendLine($"- Edges Beveled: {edgeList.Count}");
-            sb.AppendLine($"- Bevel Amount: {amount}");
-            sb.AppendLine($"- New Faces Created: {newFaces.Count}");
-            sb.AppendLine();
-            sb.AppendLine("# Updated Mesh Info:");
-            sb.AppendLine($"- Total Face Count: {proBuilderMesh.faceCount}");
-            sb.AppendLine($"- Total Vertex Count: {proBuilderMesh.vertexCount}");
-            sb.AppendLine($"- Total Edge Count: {proBuilderMesh.edgeCount}");
-
-            return sb.ToString();
+            return new BevelResponse
+            {
+                edgesBeveled = edgeList.Count,
+                bevelAmount = amount,
+                newFacesCreated = newFaces.Count,
+                totalFaceCount = proBuilderMesh.faceCount,
+                totalVertexCount = proBuilderMesh.vertexCount,
+                totalEdgeCount = proBuilderMesh.edgeCount
+            };
         });
+
+        #region Bevel Response Classes
+
+        public class BevelResponse
+        {
+            public int edgesBeveled;
+            public float bevelAmount;
+            public int newFacesCreated;
+            public int totalFaceCount;
+            public int totalVertexCount;
+            public int totalEdgeCount;
+        }
+
+        #endregion
     }
 }

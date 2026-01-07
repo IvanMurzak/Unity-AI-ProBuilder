@@ -1,114 +1,448 @@
 {
-  "LogLevel": 3,
-  "EnabledTools": [
-    "Assets_Copy",
-    "Assets_CreateFolders",
-    "Assets_Delete",
-    "Assets_Find",
-    "Assets_Material_Create",
-    "Assets_Modify",
-    "Assets_Move",
-    "Assets_Read",
-    "Assets_Refresh",
-    "Assets_Prefab_Close",
-    "Assets_Prefab_Create",
-    "Assets_Prefab_Instantiate",
-    "Assets_Prefab_Open",
-    "Assets_Prefab_Save",
-    "Assets_Shader_ListAll",
-    "Component_GetAll",
-    "Console_GetLogs",
-    "Editor_GetApplicationInformation",
-    "Editor_SetApplicationState",
-    "Editor_Selection_Get",
-    "Editor_Selection_Set",
-    "GameObject_AddComponent",
-    "GameObject_Create",
-    "GameObject_Destroy",
-    "GameObject_DestroyComponents",
-    "GameObject_Duplicate",
-    "GameObject_Find",
-    "GameObject_Modify",
-    "GameObject_SetParent",
-    "Reflection_MethodCall",
-    "Reflection_MethodFind",
-    "Scene_Create",
-    "Scene_GetHierarchy",
-    "Scene_GetLoaded",
-    "Scene_Load",
-    "Scene_Save",
-    "Scene_Unload",
-    "Script_Delete",
-    "Script_Execute",
-    "Script_Read",
-    "Script_CreateOrUpdate",
-    "TestRunner_Run",
-    "ProBuilder_Bevel",
-    "ProBuilder_Bridge",
-    "ProBuilder_ConnectEdges",
-    "ProBuilder_CreateShape",
-    "ProBuilder_DeleteFaces",
-    "ProBuilder_Extrude",
-    "ProBuilder_FlipNormals",
-    "ProBuilder_GetMeshInfo",
-    "ProBuilder_MergeObjects",
-    "ProBuilder_CreatePolyShape",
-    "ProBuilder_SetFaceMaterial",
-    "ProBuilder_SetPivot",
-    "ProBuilder_SubdivideEdges"
+  "logLevel": 3,
+  "tools": [
+    {
+      "name": "assets-copy",
+      "enabled": true
+    },
+    {
+      "name": "assets-create-folder",
+      "enabled": true
+    },
+    {
+      "name": "assets-delete",
+      "enabled": true
+    },
+    {
+      "name": "assets-find",
+      "enabled": true
+    },
+    {
+      "name": "assets-get-data",
+      "enabled": true
+    },
+    {
+      "name": "assets-material-create",
+      "enabled": true
+    },
+    {
+      "name": "assets-modify",
+      "enabled": true
+    },
+    {
+      "name": "assets-move",
+      "enabled": true
+    },
+    {
+      "name": "assets-refresh",
+      "enabled": true
+    },
+    {
+      "name": "assets-prefab-close",
+      "enabled": true
+    },
+    {
+      "name": "assets-prefab-create",
+      "enabled": true
+    },
+    {
+      "name": "assets-prefab-instantiate",
+      "enabled": true
+    },
+    {
+      "name": "assets-prefab-open",
+      "enabled": true
+    },
+    {
+      "name": "assets-prefab-save",
+      "enabled": true
+    },
+    {
+      "name": "assets-shader-list-all",
+      "enabled": true
+    },
+    {
+      "name": "component-list",
+      "enabled": true
+    },
+    {
+      "name": "console-get-logs",
+      "enabled": true
+    },
+    {
+      "name": "editor-application-get-state",
+      "enabled": true
+    },
+    {
+      "name": "editor-application-set-state",
+      "enabled": true
+    },
+    {
+      "name": "editor-selection-get",
+      "enabled": true
+    },
+    {
+      "name": "editor-selection-set",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-component-add",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-component-destroy",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-component-get",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-component-modify",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-create",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-destroy",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-duplicate",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-find",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-modify",
+      "enabled": true
+    },
+    {
+      "name": "gameobject-set-parent",
+      "enabled": true
+    },
+    {
+      "name": "package-add",
+      "enabled": true
+    },
+    {
+      "name": "package-list",
+      "enabled": true
+    },
+    {
+      "name": "package-remove",
+      "enabled": true
+    },
+    {
+      "name": "package-search",
+      "enabled": true
+    },
+    {
+      "name": "reflection-method-call",
+      "enabled": true
+    },
+    {
+      "name": "reflection-method-find",
+      "enabled": true
+    },
+    {
+      "name": "scene-create",
+      "enabled": true
+    },
+    {
+      "name": "scene-get-data",
+      "enabled": true
+    },
+    {
+      "name": "scene-list-opened",
+      "enabled": true
+    },
+    {
+      "name": "scene-open",
+      "enabled": true
+    },
+    {
+      "name": "scene-save",
+      "enabled": true
+    },
+    {
+      "name": "scene-set-active",
+      "enabled": true
+    },
+    {
+      "name": "scene-unload",
+      "enabled": true
+    },
+    {
+      "name": "script-delete",
+      "enabled": true
+    },
+    {
+      "name": "script-execute",
+      "enabled": true
+    },
+    {
+      "name": "script-read",
+      "enabled": true
+    },
+    {
+      "name": "script-update-or-create",
+      "enabled": true
+    },
+    {
+      "name": "tests-run",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-bevel",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-bridge",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-connect-edges",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-create-shape",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-delete-faces",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-extrude",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-flip-normals",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-get-mesh-info",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-merge-objects",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-create-poly-shape",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-set-face-material",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-set-pivot",
+      "enabled": true
+    },
+    {
+      "name": "probuilder-subdivide-edges",
+      "enabled": true
+    }
   ],
-  "EnabledPrompts": [
-    "setup-animator-controller",
-    "create-simple-tweening",
-    "setup-timeline-sequence",
-    "add-animation-events",
-    "create-procedural-animation",
-    "setup-sprite-animation",
-    "add-ik-system",
-    "create-animation-blending",
-    "organize-project-structure",
-    "import-setup-sprites",
-    "setup-audio-manager",
-    "configure-build-settings",
-    "create-material-library",
-    "setup-asset-bundles",
-    "optimize-texture-settings",
-    "setup-addressables",
-    "add-debug-visualization",
-    "setup-performance-profiling",
-    "create-test-scene",
-    "add-logging-system",
-    "create-unit-tests",
-    "setup-debug-ui",
-    "add-assertion-checks",
-    "create-automated-tests",
-    "add-standard-components",
-    "setup-player-controller",
-    "create-ui-canvas",
-    "add-physics-interactions",
-    "create-interactive-object",
-    "setup-audio-source",
-    "create-particle-effects",
-    "setup-animator-component",
-    "setup-basic-scene",
-    "organize-scene-hierarchy",
-    "add-lighting-setup",
-    "create-prefab-from-selection",
-    "setup-scene-camera",
-    "create-environment-template",
-    "generate-monobehaviour-template",
-    "add-event-system",
-    "create-singleton-manager",
-    "setup-coroutine-framework",
-    "create-scriptableobject-data",
-    "implement-object-pooling",
-    "add-state-machine",
-    "setup-dependency-injection"
+  "prompts": [
+    {
+      "name": "setup-animator-controller",
+      "enabled": true
+    },
+    {
+      "name": "create-simple-tweening",
+      "enabled": true
+    },
+    {
+      "name": "setup-timeline-sequence",
+      "enabled": true
+    },
+    {
+      "name": "add-animation-events",
+      "enabled": true
+    },
+    {
+      "name": "create-procedural-animation",
+      "enabled": true
+    },
+    {
+      "name": "setup-sprite-animation",
+      "enabled": true
+    },
+    {
+      "name": "add-ik-system",
+      "enabled": true
+    },
+    {
+      "name": "create-animation-blending",
+      "enabled": true
+    },
+    {
+      "name": "organize-project-structure",
+      "enabled": true
+    },
+    {
+      "name": "import-setup-sprites",
+      "enabled": true
+    },
+    {
+      "name": "setup-audio-manager",
+      "enabled": true
+    },
+    {
+      "name": "configure-build-settings",
+      "enabled": true
+    },
+    {
+      "name": "create-material-library",
+      "enabled": true
+    },
+    {
+      "name": "setup-asset-bundles",
+      "enabled": true
+    },
+    {
+      "name": "optimize-texture-settings",
+      "enabled": true
+    },
+    {
+      "name": "setup-addressables",
+      "enabled": true
+    },
+    {
+      "name": "add-debug-visualization",
+      "enabled": true
+    },
+    {
+      "name": "setup-performance-profiling",
+      "enabled": true
+    },
+    {
+      "name": "create-test-scene",
+      "enabled": true
+    },
+    {
+      "name": "add-logging-system",
+      "enabled": true
+    },
+    {
+      "name": "create-unit-tests",
+      "enabled": true
+    },
+    {
+      "name": "setup-debug-ui",
+      "enabled": true
+    },
+    {
+      "name": "add-assertion-checks",
+      "enabled": true
+    },
+    {
+      "name": "create-automated-tests",
+      "enabled": true
+    },
+    {
+      "name": "add-standard-components",
+      "enabled": true
+    },
+    {
+      "name": "setup-player-controller",
+      "enabled": true
+    },
+    {
+      "name": "create-ui-canvas",
+      "enabled": true
+    },
+    {
+      "name": "add-physics-interactions",
+      "enabled": true
+    },
+    {
+      "name": "create-interactive-object",
+      "enabled": true
+    },
+    {
+      "name": "setup-audio-source",
+      "enabled": true
+    },
+    {
+      "name": "create-particle-effects",
+      "enabled": true
+    },
+    {
+      "name": "setup-animator-component",
+      "enabled": true
+    },
+    {
+      "name": "setup-basic-scene",
+      "enabled": true
+    },
+    {
+      "name": "organize-scene-hierarchy",
+      "enabled": true
+    },
+    {
+      "name": "add-lighting-setup",
+      "enabled": true
+    },
+    {
+      "name": "create-prefab-from-selection",
+      "enabled": true
+    },
+    {
+      "name": "setup-scene-camera",
+      "enabled": true
+    },
+    {
+      "name": "create-environment-template",
+      "enabled": true
+    },
+    {
+      "name": "generate-monobehaviour-template",
+      "enabled": true
+    },
+    {
+      "name": "add-event-system",
+      "enabled": true
+    },
+    {
+      "name": "create-singleton-manager",
+      "enabled": true
+    },
+    {
+      "name": "setup-coroutine-framework",
+      "enabled": true
+    },
+    {
+      "name": "create-scriptableobject-data",
+      "enabled": true
+    },
+    {
+      "name": "implement-object-pooling",
+      "enabled": true
+    },
+    {
+      "name": "add-state-machine",
+      "enabled": true
+    },
+    {
+      "name": "setup-dependency-injection",
+      "enabled": true
+    }
   ],
-  "EnabledResources": [
-    "GameObject_CurrentScene"
+  "resources": [
+    {
+      "name": "GameObject from Current Scene by Path",
+      "enabled": true
+    }
   ],
-  "Host": "http://localhost:54466",
-  "TimeoutMs": 10000,
-  "KeepConnected": true
+  "host": "http://localhost:54466",
+  "timeoutMs": 10000,
+  "keepConnected": false
 }
