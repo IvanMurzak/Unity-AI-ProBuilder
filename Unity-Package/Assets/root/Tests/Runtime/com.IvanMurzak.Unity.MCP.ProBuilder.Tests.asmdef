@@ -23,8 +23,10 @@
         "McpPlugin.Common.dll",
         "R3.dll"
     ],
-    "autoReferenced": false,
-    "defineConstraints": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }
