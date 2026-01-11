@@ -43,6 +43,8 @@ Examples:
             GameObjectRef gameObjectRef,
             [Description("Path to the material asset (e.g., 'Assets/Materials/MyMaterial.mat') or material name.")]
             string materialPath,
+            [Description("Legacy path to the material asset. Used when materialPath is empty.")]
+            string? materialAssetPath = null,
             [Description("Array of face indices to apply the material to. Use this OR faceDirection, not both. Use ProBuilder_GetMeshInfo to get valid face indices.")]
             int[]? faceIndices = null,
             [Description("Semantic face selection by direction. Use this OR faceIndices, not both.")]
@@ -64,7 +66,12 @@ Examples:
             if (proBuilderMesh == null)
                 return Error.ProBuilderMeshNotFound(go.GetInstanceID());
 
-            if (string.IsNullOrEmpty(materialPath))
+            if (string.IsNullOrWhiteSpace(materialPath) && !string.IsNullOrWhiteSpace(materialAssetPath))
+            {
+                materialPath = materialAssetPath!;
+            }
+
+            if (string.IsNullOrWhiteSpace(materialPath))
                 return "[Error] Material path is empty. Please provide a valid material path.";
 
             // Resolve face indices from either direct indices or semantic direction
