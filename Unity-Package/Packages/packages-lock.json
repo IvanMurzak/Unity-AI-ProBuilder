@@ -1,16 +1,16 @@
 {
   "dependencies": {
     "com.ivanmurzak.unity.mcp": {
-      "version": "0.36.3",
+      "version": "0.41.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.33",
         "com.unity.modules.uielements": "1.0.0",
+        "com.unity.test-framework": "1.1.33",
         "extensions.unity.playerprefsex": "2.1.2",
-        "org.nuget.microsoft.bcl.memory": "10.0.1",
         "org.nuget.microsoft.aspnetcore.signalr.client": "10.0.1",
         "org.nuget.microsoft.aspnetcore.signalr.protocols.json": "10.0.1",
+        "org.nuget.microsoft.bcl.memory": "10.0.1",
         "org.nuget.microsoft.codeanalysis.csharp": "4.14.0",
         "org.nuget.microsoft.extensions.caching.abstractions": "10.0.1",
         "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "10.0.1",

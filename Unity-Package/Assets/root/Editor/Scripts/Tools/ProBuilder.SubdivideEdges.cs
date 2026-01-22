@@ -16,11 +16,10 @@ using System.ComponentModel;
 using System.Linq;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.ProBuilder;
 using UnityEngine.ProBuilder.MeshOperations;
 
@@ -28,9 +27,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderSubdivideEdgesToolId = "probuilder-subdivide-edges";
         [McpPluginTool
         (
-            "probuilder-subdivide-edges",
+            ProBuilderSubdivideEdgesToolId,
             Title = "Subdivide edges in a ProBuilder mesh"
         )]
         [Description(@"Inserts new vertices on edges, subdividing them into smaller segments.
@@ -50,108 +50,114 @@ Examples:
             [Description("Number of subdivisions per edge. 1 = splits edge in half, 2 = splits into thirds, etc. Default is 1.")]
             int subdivisions = 1
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            if (subdivisions < 1)
-                throw new Exception("Subdivisions must be at least 1.");
-
-            // Resolve edges from either direct indices or semantic direction
-            List<Edge> edgesToSubdivide;
-            string selectionMethod;
-
-            if (edges != null && edges.Length > 0)
+            return MainThread.Instance.Run(() =>
             {
-                // Validate edge definitions
-                foreach (var edge in edges)
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
+
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
+
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
+
+                if (subdivisions < 1)
+                    throw new Exception("Subdivisions must be at least 1.");
+
+                // Resolve edges from either direct indices or semantic direction
+                List<Edge> edgesToSubdivide;
+                string selectionMethod;
+
+                if (edges != null && edges.Length > 0)
                 {
-                    if (edge == null || edge.Length < 2)
-                        throw new Exception("Each edge must have exactly 2 vertex indices [vertexA, vertexB].");
+                    // Validate edge definitions
+                    foreach (var edge in edges)
+                    {
+                        if (edge == null || edge.Length < 2)
+                            throw new Exception("Each edge must have exactly 2 vertex indices [vertexA, vertexB].");
+                    }
+
+                    edgesToSubdivide = edges.Select(e => new Edge(e[0], e[1])).ToList();
+                    selectionMethod = "by vertex indices";
+                }
+                else if (faceDirection.HasValue)
+                {
+                    var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
+                    if (selectionError != null)
+                        throw new Exception(selectionError);
+
+                    // Get all edges from the selected faces
+                    var faces = proBuilderMesh.faces;
+                    edgesToSubdivide = new List<Edge>();
+                    foreach (var faceIndex in selectedIndices!)
+                    {
+                        edgesToSubdivide.AddRange(faces[faceIndex].edges);
+                    }
+                    // Remove duplicates
+                    edgesToSubdivide = edgesToSubdivide.Distinct().ToList();
+                    selectionMethod = $"from faces facing '{faceDirection.Value}'";
+                }
+                else
+                {
+                    throw new Exception("Either edges or faceDirection must be provided.");
                 }
 
-                edgesToSubdivide = edges.Select(e => new Edge(e[0], e[1])).ToList();
-                selectionMethod = "by vertex indices";
-            }
-            else if (faceDirection.HasValue)
-            {
-                var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
-                if (selectionError != null)
-                    throw new Exception(selectionError);
+                if (edgesToSubdivide.Count == 0)
+                    throw new Exception("No edges found to subdivide.");
 
-                // Get all edges from the selected faces
-                var faces = proBuilderMesh.faces;
-                edgesToSubdivide = new List<Edge>();
-                foreach (var faceIndex in selectedIndices!)
+                var originalVertexCount = proBuilderMesh.vertexCount;
+                var originalEdgeCount = proBuilderMesh.edgeCount;
+
+                // Perform subdivision
+                List<Edge>? newEdges = null;
+                try
                 {
-                    edgesToSubdivide.AddRange(faces[faceIndex].edges);
+                    newEdges = proBuilderMesh.AppendVerticesToEdge(edgesToSubdivide, subdivisions);
                 }
-                // Remove duplicates
-                edgesToSubdivide = edgesToSubdivide.Distinct().ToList();
-                selectionMethod = $"from faces facing '{faceDirection.Value}'";
-            }
-            else
-            {
-                throw new Exception("Either edges or faceDirection must be provided.");
-            }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to subdivide edges: {ex.Message}");
+                }
 
-            if (edgesToSubdivide.Count == 0)
-                throw new Exception("No edges found to subdivide.");
+                if (newEdges == null || newEdges.Count == 0)
+                {
+                    throw new Exception("Subdivision failed - no new edges created. The edges may be invalid for this mesh.");
+                }
 
-            var originalVertexCount = proBuilderMesh.vertexCount;
-            var originalEdgeCount = proBuilderMesh.edgeCount;
+                // Rebuild mesh
+                proBuilderMesh.ToMesh();
+                proBuilderMesh.Refresh();
 
-            // Perform subdivision
-            List<Edge>? newEdges = null;
-            try
-            {
-                newEdges = proBuilderMesh.AppendVerticesToEdge(edgesToSubdivide, subdivisions);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to subdivide edges: {ex.Message}");
-            }
+                // Mark as dirty
+                EditorUtility.SetDirty(proBuilderMesh);
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
 
-            if (newEdges == null || newEdges.Count == 0)
-            {
-                throw new Exception("Subdivision failed - no new edges created. The edges may be invalid for this mesh.");
-            }
-
-            // Rebuild mesh
-            proBuilderMesh.ToMesh();
-            proBuilderMesh.Refresh();
-
-            // Mark as dirty
-            EditorUtility.SetDirty(proBuilderMesh);
-            EditorUtility.SetDirty(go);
-
-            return new SubdivideEdgesResponse
-            {
-                selectionMethod = selectionMethod,
-                edgesSubdivided = edgesToSubdivide.Count,
-                subdivisionsPerEdge = subdivisions,
-                newEdgesCreated = newEdges.Count,
-                vertexCountBefore = originalVertexCount,
-                vertexCountAfter = proBuilderMesh.vertexCount,
-                verticesAdded = proBuilderMesh.vertexCount - originalVertexCount,
-                edgeCountBefore = originalEdgeCount,
-                edgeCountAfter = proBuilderMesh.edgeCount,
-                edgesAdded = proBuilderMesh.edgeCount - originalEdgeCount,
-                totalFaceCount = proBuilderMesh.faceCount
-            };
-        });
+                return new SubdivideEdgesResponse
+                {
+                    selectionMethod = selectionMethod,
+                    edgesSubdivided = edgesToSubdivide.Count,
+                    subdivisionsPerEdge = subdivisions,
+                    newEdgesCreated = newEdges.Count,
+                    vertexCountBefore = originalVertexCount,
+                    vertexCountAfter = proBuilderMesh.vertexCount,
+                    verticesAdded = proBuilderMesh.vertexCount - originalVertexCount,
+                    edgeCountBefore = originalEdgeCount,
+                    edgeCountAfter = proBuilderMesh.edgeCount,
+                    edgesAdded = proBuilderMesh.edgeCount - originalEdgeCount,
+                    totalFaceCount = proBuilderMesh.faceCount
+                };
+            });
+        }
 
         #region SubdivideEdges Response Classes
 

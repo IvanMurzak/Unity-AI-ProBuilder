@@ -18,7 +18,6 @@ using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEngine;
 using UnityEngine.ProBuilder;
 
@@ -26,9 +25,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderGetMeshInfoToolId = "probuilder-get-mesh-info";
         [McpPluginTool
         (
-            "probuilder-get-mesh-info",
+            ProBuilderGetMeshInfoToolId,
             Title = "Get ProBuilder mesh information"
         )]
         [Description(@"Retrieves information about a ProBuilder mesh including faces, vertices, and edges.
@@ -50,159 +50,164 @@ you often don't need GetMeshInfo at all - just use faceDirection=""up"" etc. dir
             [Description("Maximum number of faces to include in detail (only with detail='full'). Use -1 for all faces.")]
             int maxFacesToShow = 20
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            var response = new GetMeshInfoResponse();
-
-            // Basic info
-            response.gameObjectName = go.name;
-            response.instanceId = go.GetInstanceID();
-            response.faceCount = proBuilderMesh.faceCount;
-            response.vertexCount = proBuilderMesh.vertexCount;
-            response.edgeCount = proBuilderMesh.edgeCount;
-            response.triangleCount = proBuilderMesh.triangleCount;
-
-            // Bounds
-            var meshFilter = go.GetComponent<MeshFilter>();
-            if (meshFilter != null && meshFilter.sharedMesh != null)
+            return MainThread.Instance.Run(() =>
             {
-                var bounds = meshFilter.sharedMesh.bounds;
-                response.bounds = new BoundsInfo
-                {
-                    center = FormatVector3(bounds.center),
-                    size = FormatVector3(bounds.size),
-                    min = FormatVector3(bounds.min),
-                    max = FormatVector3(bounds.max)
-                };
-            }
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
 
-            // Face directions
-            var directionSummary = FaceSelectionHelper.GetFaceDirectionSummary(proBuilderMesh, out var otherFaces);
-            var faces = proBuilderMesh.faces;
-            var positions = proBuilderMesh.positions;
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
 
-            response.faceDirections = new List<FaceDirectionInfo>();
-            foreach (var kvp in directionSummary)
-            {
-                if (kvp.Value.Count > 0)
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
+
+                var response = new GetMeshInfoResponse();
+
+                // Basic info
+                response.gameObjectName = go.name;
+                response.instanceId = go.GetInstanceID();
+                response.faceCount = proBuilderMesh.faceCount;
+                response.vertexCount = proBuilderMesh.vertexCount;
+                response.edgeCount = proBuilderMesh.edgeCount;
+                response.triangleCount = proBuilderMesh.triangleCount;
+
+                // Bounds
+                var meshFilter = go.GetComponent<MeshFilter>();
+                if (meshFilter != null && meshFilter.sharedMesh != null)
                 {
-                    var info = new FaceDirectionInfo
+                    var bounds = meshFilter.sharedMesh.bounds;
+                    response.bounds = new BoundsInfo
                     {
-                        direction = kvp.Key.ToString(),
-                        faceIndices = kvp.Value.ToArray()
+                        center = FormatVector3(bounds.center),
+                        size = FormatVector3(bounds.size),
+                        min = FormatVector3(bounds.min),
+                        max = FormatVector3(bounds.max)
                     };
-
-                    // Get center of first face in this direction
-                    if (kvp.Value.Count > 0 && kvp.Value[0] < faces.Count)
-                    {
-                        var center = FaceSelectionHelper.GetFaceCenter(faces[kvp.Value[0]], positions);
-                        info.firstFaceCenter = FormatVector3(center);
-                    }
-
-                    response.faceDirections.Add(info);
                 }
-            }
 
-            if (otherFaces.Count > 0)
-            {
-                response.faceDirections.Add(new FaceDirectionInfo
+                // Face directions
+                var directionSummary = FaceSelectionHelper.GetFaceDirectionSummary(proBuilderMesh, out var otherFaces);
+                var faces = proBuilderMesh.faces;
+                var positions = proBuilderMesh.positions;
+
+                response.faceDirections = new List<FaceDirectionInfo>();
+                foreach (var kvp in directionSummary)
                 {
-                    direction = "other",
-                    faceIndices = otherFaces.ToArray()
-                });
-            }
-
-            // Full detail mode - detailed face-by-face info
-            if (detail == MeshInfoDetailLevel.Full)
-            {
-                var faceCount = faces.Count();
-                var facesToShow = maxFacesToShow < 0 ? faceCount : System.Math.Min(maxFacesToShow, faceCount);
-
-                response.faces = new List<FaceInfo>();
-                response.facesShown = facesToShow;
-                response.facesTotal = faceCount;
-
-                for (int i = 0; i < facesToShow; i++)
-                {
-                    var face = faces[i];
-                    var faceVertices = face.distinctIndexes;
-                    var faceEdges = face.edges;
-
-                    // Calculate face center
-                    var center = Vector3.zero;
-                    foreach (var vertIndex in faceVertices)
+                    if (kvp.Value.Count > 0)
                     {
-                        center += positions[vertIndex];
+                        var info = new FaceDirectionInfo
+                        {
+                            direction = kvp.Key.ToString(),
+                            faceIndices = kvp.Value.ToArray()
+                        };
+
+                        // Get center of first face in this direction
+                        if (kvp.Value.Count > 0 && kvp.Value[0] < faces.Count)
+                        {
+                            var center = FaceSelectionHelper.GetFaceCenter(faces[kvp.Value[0]], positions);
+                            info.firstFaceCenter = FormatVector3(center);
+                        }
+
+                        response.faceDirections.Add(info);
                     }
-                    var vertCount = faceVertices.Count();
-                    center /= vertCount;
+                }
 
-                    var faceInfo = new FaceInfo
+                if (otherFaces.Count > 0)
+                {
+                    response.faceDirections.Add(new FaceDirectionInfo
                     {
-                        index = i,
-                        vertexCount = vertCount,
-                        triangleCount = face.indexes.Count() / 3,
-                        center = FormatVector3(center)
-                    };
+                        direction = "other",
+                        faceIndices = otherFaces.ToArray()
+                    });
+                }
 
-                    if (includeVertexPositions)
+                // Full detail mode - detailed face-by-face info
+                if (detail == MeshInfoDetailLevel.Full)
+                {
+                    var faceCount = faces.Count();
+                    var facesToShow = maxFacesToShow < 0 ? faceCount : System.Math.Min(maxFacesToShow, faceCount);
+
+                    response.faces = new List<FaceInfo>();
+                    response.facesShown = facesToShow;
+                    response.facesTotal = faceCount;
+
+                    for (int i = 0; i < facesToShow; i++)
                     {
-                        faceInfo.vertices = new List<VertexInfo>();
+                        var face = faces[i];
+                        var faceVertices = face.distinctIndexes;
+                        var faceEdges = face.edges;
+
+                        // Calculate face center
+                        var center = Vector3.zero;
                         foreach (var vertIndex in faceVertices)
                         {
-                            var pos = positions[vertIndex];
-                            faceInfo.vertices.Add(new VertexInfo
-                            {
-                                index = vertIndex,
-                                position = FormatVector3(pos)
-                            });
+                            center += positions[vertIndex];
                         }
+                        var vertCount = faceVertices.Count();
+                        center /= vertCount;
+
+                        var faceInfo = new FaceInfo
+                        {
+                            index = i,
+                            vertexCount = vertCount,
+                            triangleCount = face.indexes.Count() / 3,
+                            center = FormatVector3(center)
+                        };
+
+                        if (includeVertexPositions)
+                        {
+                            faceInfo.vertices = new List<VertexInfo>();
+                            foreach (var vertIndex in faceVertices)
+                            {
+                                var pos = positions[vertIndex];
+                                faceInfo.vertices.Add(new VertexInfo
+                                {
+                                    index = vertIndex,
+                                    position = FormatVector3(pos)
+                                });
+                            }
+                        }
+
+                        if (includeEdges)
+                        {
+                            faceInfo.edges = new List<EdgeInfo>();
+                            foreach (var edge in faceEdges)
+                            {
+                                var p1 = positions[edge.a];
+                                var p2 = positions[edge.b];
+                                faceInfo.edges.Add(new EdgeInfo
+                                {
+                                    vertexA = edge.a,
+                                    vertexB = edge.b,
+                                    positionA = FormatVector3(p1),
+                                    positionB = FormatVector3(p2)
+                                });
+                            }
+                        }
+
+                        response.faces.Add(faceInfo);
                     }
 
+                    // Unique edges summary
                     if (includeEdges)
                     {
-                        faceInfo.edges = new List<EdgeInfo>();
-                        foreach (var edge in faceEdges)
-                        {
-                            var p1 = positions[edge.a];
-                            var p2 = positions[edge.b];
-                            faceInfo.edges.Add(new EdgeInfo
-                            {
-                                vertexA = edge.a,
-                                vertexB = edge.b,
-                                positionA = FormatVector3(p1),
-                                positionB = FormatVector3(p2)
-                            });
-                        }
+                        var allEdges = proBuilderMesh.faces.SelectMany(f => f.edges).Distinct().ToList();
+                        response.uniqueEdgeCount = allEdges.Count;
                     }
-
-                    response.faces.Add(faceInfo);
                 }
 
-                // Unique edges summary
-                if (includeEdges)
-                {
-                    var allEdges = proBuilderMesh.faces.SelectMany(f => f.edges).Distinct().ToList();
-                    response.uniqueEdgeCount = allEdges.Count;
-                }
-            }
-
-            return response;
-        });
+                return response;
+            });
+        }
 
         private static string FormatVector3(Vector3 v) => $"({v.x:F2}, {v.y:F2}, {v.z:F2})";
 

@@ -16,11 +16,10 @@ using System.ComponentModel;
 using System.Linq;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.ProBuilder;
 using UnityEngine.ProBuilder.MeshOperations;
 
@@ -28,9 +27,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderConnectEdgesToolId = "probuilder-connect-edges";
         [McpPluginTool
         (
-            "probuilder-connect-edges",
+            ProBuilderConnectEdgesToolId,
             Title = "Connect edges in a ProBuilder mesh"
         )]
         [Description(@"Inserts new edges connecting the midpoints of selected edges within faces.
@@ -49,108 +49,114 @@ Examples:
             [Description("Semantic face selection - connect edges of faces facing this direction.")]
             FaceDirection? faceDirection = null
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            // Resolve edges from either direct indices or semantic direction
-            List<Edge> edgesToConnect;
-            string selectionMethod;
-
-            if (edges != null && edges.Length > 0)
+            return MainThread.Instance.Run(() =>
             {
-                // Validate edge definitions
-                foreach (var edge in edges)
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
+
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
+
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
+
+                // Resolve edges from either direct indices or semantic direction
+                List<Edge> edgesToConnect;
+                string selectionMethod;
+
+                if (edges != null && edges.Length > 0)
                 {
-                    if (edge == null || edge.Length < 2)
-                        throw new Exception("Each edge must have exactly 2 vertex indices [vertexA, vertexB].");
+                    // Validate edge definitions
+                    foreach (var edge in edges)
+                    {
+                        if (edge == null || edge.Length < 2)
+                            throw new Exception("Each edge must have exactly 2 vertex indices [vertexA, vertexB].");
+                    }
+
+                    edgesToConnect = edges.Select(e => new Edge(e[0], e[1])).ToList();
+                    selectionMethod = "by vertex indices";
+                }
+                else if (faceDirection.HasValue)
+                {
+                    var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
+                    if (selectionError != null)
+                        throw new Exception(selectionError);
+
+                    // Get all edges from the selected faces
+                    var faces = proBuilderMesh.faces;
+                    edgesToConnect = new List<Edge>();
+                    foreach (var faceIndex in selectedIndices!)
+                    {
+                        edgesToConnect.AddRange(faces[faceIndex].edges);
+                    }
+                    // Remove duplicates
+                    edgesToConnect = edgesToConnect.Distinct().ToList();
+                    selectionMethod = $"from faces facing '{faceDirection.Value}'";
+                }
+                else
+                {
+                    throw new Exception("Either edges or faceDirection must be provided.");
                 }
 
-                edgesToConnect = edges.Select(e => new Edge(e[0], e[1])).ToList();
-                selectionMethod = "by vertex indices";
-            }
-            else if (faceDirection.HasValue)
-            {
-                var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
-                if (selectionError != null)
-                    throw new Exception(selectionError);
+                if (edgesToConnect.Count < 2)
+                    throw new Exception("At least 2 edges are required for connection.");
 
-                // Get all edges from the selected faces
-                var faces = proBuilderMesh.faces;
-                edgesToConnect = new List<Edge>();
-                foreach (var faceIndex in selectedIndices!)
+                var originalFaceCount = proBuilderMesh.faceCount;
+                var originalEdgeCount = proBuilderMesh.edgeCount;
+
+                // Perform connection
+                Face[]? newFaces = null;
+                Edge[]? newEdges = null;
+                try
                 {
-                    edgesToConnect.AddRange(faces[faceIndex].edges);
+                    var result = ConnectElements.Connect(proBuilderMesh, edgesToConnect);
+                    newFaces = result.item1;
+                    newEdges = result.item2;
                 }
-                // Remove duplicates
-                edgesToConnect = edgesToConnect.Distinct().ToList();
-                selectionMethod = $"from faces facing '{faceDirection.Value}'";
-            }
-            else
-            {
-                throw new Exception("Either edges or faceDirection must be provided.");
-            }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to connect edges: {ex.Message}");
+                }
 
-            if (edgesToConnect.Count < 2)
-                throw new Exception("At least 2 edges are required for connection.");
+                if ((newFaces == null || newFaces.Length == 0) && (newEdges == null || newEdges.Length == 0))
+                {
+                    throw new Exception("Connection failed - no new geometry created. The edges may not be suitable for connection.");
+                }
 
-            var originalFaceCount = proBuilderMesh.faceCount;
-            var originalEdgeCount = proBuilderMesh.edgeCount;
+                // Rebuild mesh
+                proBuilderMesh.ToMesh();
+                proBuilderMesh.Refresh();
 
-            // Perform connection
-            Face[]? newFaces = null;
-            Edge[]? newEdges = null;
-            try
-            {
-                var result = ConnectElements.Connect(proBuilderMesh, edgesToConnect);
-                newFaces = result.item1;
-                newEdges = result.item2;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to connect edges: {ex.Message}");
-            }
+                // Mark as dirty
+                EditorUtility.SetDirty(proBuilderMesh);
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
 
-            if ((newFaces == null || newFaces.Length == 0) && (newEdges == null || newEdges.Length == 0))
-            {
-                throw new Exception("Connection failed - no new geometry created. The edges may not be suitable for connection.");
-            }
-
-            // Rebuild mesh
-            proBuilderMesh.ToMesh();
-            proBuilderMesh.Refresh();
-
-            // Mark as dirty
-            EditorUtility.SetDirty(proBuilderMesh);
-            EditorUtility.SetDirty(go);
-
-            return new ConnectEdgesResponse
-            {
-                selectionMethod = selectionMethod,
-                edgesConnected = edgesToConnect.Count,
-                newFacesCreated = newFaces?.Length ?? 0,
-                newEdgesCreated = newEdges?.Length ?? 0,
-                faceCountBefore = originalFaceCount,
-                faceCountAfter = proBuilderMesh.faceCount,
-                facesAdded = proBuilderMesh.faceCount - originalFaceCount,
-                edgeCountBefore = originalEdgeCount,
-                edgeCountAfter = proBuilderMesh.edgeCount,
-                edgesAdded = proBuilderMesh.edgeCount - originalEdgeCount,
-                totalVertexCount = proBuilderMesh.vertexCount
-            };
-        });
+                return new ConnectEdgesResponse
+                {
+                    selectionMethod = selectionMethod,
+                    edgesConnected = edgesToConnect.Count,
+                    newFacesCreated = newFaces?.Length ?? 0,
+                    newEdgesCreated = newEdges?.Length ?? 0,
+                    faceCountBefore = originalFaceCount,
+                    faceCountAfter = proBuilderMesh.faceCount,
+                    facesAdded = proBuilderMesh.faceCount - originalFaceCount,
+                    edgeCountBefore = originalEdgeCount,
+                    edgeCountAfter = proBuilderMesh.edgeCount,
+                    edgesAdded = proBuilderMesh.edgeCount - originalEdgeCount,
+                    totalVertexCount = proBuilderMesh.vertexCount
+                };
+            });
+        }
 
         #region ConnectEdges Response Classes
 

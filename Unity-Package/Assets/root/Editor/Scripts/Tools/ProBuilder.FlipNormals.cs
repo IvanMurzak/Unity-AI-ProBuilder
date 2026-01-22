@@ -15,21 +15,20 @@ using System.ComponentModel;
 using System.Linq;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.ProBuilder;
-using UnityEngine.ProBuilder.MeshOperations;
 
 namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderFlipNormalsToolId = "probuilder-flip-normals";
         [McpPluginTool
         (
-            "probuilder-flip-normals",
+            ProBuilderFlipNormalsToolId,
             Title = "Flip face normals in a ProBuilder mesh"
         )]
         [Description(@"Reverses the normal direction of selected faces, flipping them inside-out.
@@ -48,91 +47,97 @@ Examples:
             [Description("Semantic face selection by direction. If empty and faceIndices is empty, flips all faces.")]
             FaceDirection? faceDirection = null
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            var faces = proBuilderMesh.faces;
-            var faceCount = faces.Count();
-            if (faceCount == 0)
-                throw new Exception(Error.MeshHasNoFaces());
-
-            // Resolve face indices
-            int[] resolvedFaceIndices;
-            string selectionMethod;
-
-            if (faceIndices != null && faceIndices.Length > 0)
+            return MainThread.Instance.Run(() =>
             {
-                resolvedFaceIndices = faceIndices;
-                selectionMethod = "by index";
-            }
-            else if (faceDirection.HasValue)
-            {
-                var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
-                if (selectionError != null)
-                    throw new Exception(selectionError);
-                resolvedFaceIndices = selectedIndices!;
-                selectionMethod = $"by direction '{faceDirection.Value}'";
-            }
-            else
-            {
-                // Flip all faces
-                resolvedFaceIndices = Enumerable.Range(0, faceCount).ToArray();
-                selectionMethod = "all faces";
-            }
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
 
-            // Validate face indices
-            var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
-            if (invalidIndices.Any())
-            {
-                throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
-            }
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
 
-            // Get faces to flip
-            var facesToFlip = resolvedFaceIndices.Select(i => faces[i]).ToArray();
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
-            // Flip normals by reversing the faces
-            try
-            {
-                foreach (var face in facesToFlip)
+                var faces = proBuilderMesh.faces;
+                var faceCount = faces.Count();
+                if (faceCount == 0)
+                    throw new Exception(Error.MeshHasNoFaces());
+
+                // Resolve face indices
+                int[] resolvedFaceIndices;
+                string selectionMethod;
+
+                if (faceIndices != null && faceIndices.Length > 0)
                 {
-                    face.Reverse();
+                    resolvedFaceIndices = faceIndices;
+                    selectionMethod = "by index";
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to flip normals: {ex.Message}");
-            }
+                else if (faceDirection.HasValue)
+                {
+                    var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
+                    if (selectionError != null)
+                        throw new Exception(selectionError);
+                    resolvedFaceIndices = selectedIndices!;
+                    selectionMethod = $"by direction '{faceDirection.Value}'";
+                }
+                else
+                {
+                    // Flip all faces
+                    resolvedFaceIndices = Enumerable.Range(0, faceCount).ToArray();
+                    selectionMethod = "all faces";
+                }
 
-            // Rebuild mesh
-            proBuilderMesh.ToMesh();
-            proBuilderMesh.Refresh();
+                // Validate face indices
+                var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
+                if (invalidIndices.Any())
+                {
+                    throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
+                }
 
-            // Mark as dirty
-            EditorUtility.SetDirty(proBuilderMesh);
-            EditorUtility.SetDirty(go);
+                // Get faces to flip
+                var facesToFlip = resolvedFaceIndices.Select(i => faces[i]).ToArray();
 
-            return new FlipNormalsResponse
-            {
-                facesFlipped = resolvedFaceIndices.Length,
-                selectionMethod = selectionMethod,
-                faceIndices = resolvedFaceIndices.Length <= 20 ? resolvedFaceIndices : null,
-                totalFaceCount = proBuilderMesh.faceCount,
-                totalVertexCount = proBuilderMesh.vertexCount
-            };
-        });
+                // Flip normals by reversing the faces
+                try
+                {
+                    foreach (var face in facesToFlip)
+                    {
+                        face.Reverse();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to flip normals: {ex.Message}");
+                }
+
+                // Rebuild mesh
+                proBuilderMesh.ToMesh();
+                proBuilderMesh.Refresh();
+
+                // Mark as dirty
+                EditorUtility.SetDirty(proBuilderMesh);
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
+
+                return new FlipNormalsResponse
+                {
+                    facesFlipped = resolvedFaceIndices.Length,
+                    selectionMethod = selectionMethod,
+                    faceIndices = resolvedFaceIndices.Length <= 20 ? resolvedFaceIndices : null,
+                    totalFaceCount = proBuilderMesh.faceCount,
+                    totalVertexCount = proBuilderMesh.vertexCount
+                };
+            });
+        }
 
         #region FlipNormals Response Classes
 

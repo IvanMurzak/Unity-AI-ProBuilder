@@ -15,9 +15,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.ProBuilder;
@@ -27,9 +27,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderCreatePolyShapeToolId = "probuilder-create-poly-shape";
         [McpPluginTool
         (
-            "probuilder-create-poly-shape",
+            ProBuilderCreatePolyShapeToolId,
             Title = "Create a ProBuilder shape from polygon points"
         )]
         [Description(@"Creates a 3D mesh from a 2D polygon outline. Perfect for:
@@ -64,118 +65,120 @@ Examples:
             [Description("If true, position/rotation are in local space relative to parent.")]
             bool isLocalSpace = false
         )
-        => MainThread.Instance.Run(() =>
         {
-            // Validate points
-            if (points == null || points.Length < 3)
-                throw new Exception("At least 3 polygon points are required to create a shape.");
-
-            // Validate each point has x,z coordinates
-            for (int i = 0; i < points.Length; i++)
+            return MainThread.Instance.Run(() =>
             {
-                if (points[i] == null || points[i].Length < 2)
-                    throw new Exception($"Point at index {i} must have at least 2 coordinates [x,z].");
-            }
+                // Validate points
+                if (points == null || points.Length < 3)
+                    throw new Exception("At least 3 polygon points are required to create a shape.");
 
-            // Find parent if provided
-            GameObject? parentGo = null;
-            if (parentGameObjectRef?.IsValid ?? false)
-            {
-                parentGo = parentGameObjectRef.FindGameObject(out var error);
-                if (error != null)
-                    throw new Exception(error);
-            }
+                // Validate each point has x,z coordinates
+                for (int i = 0; i < points.Length; i++)
+                {
+                    if (points[i] == null || points[i].Length < 2)
+                        throw new Exception($"Point at index {i} must have at least 2 coordinates [x,z].");
+                }
 
-            // Set defaults
-            position ??= Vector3.zero;
-            rotation ??= Vector3.zero;
+                // Find parent if provided
+                GameObject? parentGo = null;
+                if (parentGameObjectRef?.IsValid(out _) == true)
+                {
+                    parentGo = parentGameObjectRef.FindGameObject(out var error);
+                    if (error != null)
+                        throw new Exception(error);
+                }
 
-            // Convert 2D points to 3D (x,z -> x,0,z)
-            var points3D = new Vector3[points.Length];
-            for (int i = 0; i < points.Length; i++)
-            {
-                points3D[i] = new Vector3(points[i][0], 0f, points[i][1]);
-            }
+                // Set defaults
+                position ??= Vector3.zero;
+                rotation ??= Vector3.zero;
 
-            // Create the ProBuilder mesh
-            var go = new GameObject();
-            var proBuilderMesh = go.AddComponent<ProBuilderMesh>();
+                // Convert 2D points to 3D (x,z -> x,0,z)
+                var points3D = new Vector3[points.Length];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    points3D[i] = new Vector3(points[i][0], 0f, points[i][1]);
+                }
 
-            if (proBuilderMesh == null)
-                throw new Exception("Failed to create ProBuilderMesh component.");
+                // Create the ProBuilder mesh
+                var go = new GameObject();
+                var proBuilderMesh = go.AddComponent<ProBuilderMesh>();
 
-            // Create the shape from polygon
-            try
-            {
-                var result = proBuilderMesh.CreateShapeFromPolygon(points3D, height, flipNormals);
-                if (result.status != ActionResult.Status.Success)
+                if (proBuilderMesh == null)
+                    throw new Exception("Failed to create ProBuilderMesh component.");
+
+                // Create the shape from polygon
+                try
+                {
+                    var result = proBuilderMesh.CreateShapeFromPolygon(points3D, height, flipNormals);
+                    if (result.status != ActionResult.Status.Success)
+                    {
+                        UnityEngine.Object.DestroyImmediate(go);
+                        throw new Exception($"Failed to create polygon shape: {result.notification}");
+                    }
+                }
+                catch (Exception ex)
                 {
                     UnityEngine.Object.DestroyImmediate(go);
-                    throw new Exception($"Failed to create polygon shape: {result.notification}");
+                    throw new Exception($"Failed to create polygon shape: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                UnityEngine.Object.DestroyImmediate(go);
-                throw new Exception($"Failed to create polygon shape: {ex.Message}");
-            }
 
-            go.name = name ?? "ProBuilder PolyShape";
+                go.name = name ?? "ProBuilder PolyShape";
 
-            // Set parent
-            if (parentGo != null)
-                go.transform.SetParent(parentGo.transform, false);
+                // Set parent
+                if (parentGo != null)
+                    go.transform.SetParent(parentGo.transform, false);
 
-            // Apply transform
-            if (isLocalSpace)
-            {
-                go.transform.localPosition = position.Value;
-                go.transform.localEulerAngles = rotation.Value;
-            }
-            else
-            {
-                go.transform.position = position.Value;
-                go.transform.eulerAngles = rotation.Value;
-            }
-
-            // Mark as dirty for saving
-            EditorUtility.SetDirty(go);
-            EditorApplication.RepaintHierarchyWindow();
-
-            // Calculate bounds for info
-            var meshFilter = go.GetComponent<MeshFilter>();
-            var bounds = meshFilter != null && meshFilter.sharedMesh != null
-                ? meshFilter.sharedMesh.bounds
-                : new Bounds();
-
-            // Build input points for response
-            var inputPoints = new List<PointInfo>();
-            for (int i = 0; i < points.Length; i++)
-            {
-                inputPoints.Add(new PointInfo
+                // Apply transform
+                if (isLocalSpace)
                 {
-                    index = i,
-                    x = points[i][0],
-                    z = points[i][1]
-                });
-            }
+                    go.transform.localPosition = position.Value;
+                    go.transform.localEulerAngles = rotation.Value;
+                }
+                else
+                {
+                    go.transform.position = position.Value;
+                    go.transform.eulerAngles = rotation.Value;
+                }
 
-            return new CreatePolyShapeResponse
-            {
-                gameObjectName = go.name,
-                instanceId = go.GetInstanceID(),
-                position = FormatVector3(go.transform.position),
-                rotation = FormatVector3(go.transform.eulerAngles),
-                pointCount = points.Length,
-                height = height,
-                flipNormals = flipNormals,
-                boundsSize = FormatVector3(bounds.size),
-                faceCount = proBuilderMesh.faceCount,
-                vertexCount = proBuilderMesh.vertexCount,
-                edgeCount = proBuilderMesh.edgeCount,
-                inputPoints = inputPoints
-            };
-        });
+                // Mark as dirty for saving
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
+
+                // Calculate bounds for info
+                var meshFilter = go.GetComponent<MeshFilter>();
+                var bounds = meshFilter != null && meshFilter.sharedMesh != null
+                    ? meshFilter.sharedMesh.bounds
+                    : new Bounds();
+
+                // Build input points for response
+                var inputPoints = new List<PointInfo>();
+                for (int i = 0; i < points.Length; i++)
+                {
+                    inputPoints.Add(new PointInfo
+                    {
+                        index = i,
+                        x = points[i][0],
+                        z = points[i][1]
+                    });
+                }
+
+                return new CreatePolyShapeResponse
+                {
+                    gameObjectName = go.name,
+                    instanceId = go.GetInstanceID(),
+                    position = FormatVector3(go.transform.position),
+                    rotation = FormatVector3(go.transform.eulerAngles),
+                    pointCount = points.Length,
+                    height = height,
+                    flipNormals = flipNormals,
+                    boundsSize = FormatVector3(bounds.size),
+                    faceCount = proBuilderMesh.faceCount,
+                    vertexCount = proBuilderMesh.vertexCount,
+                    edgeCount = proBuilderMesh.edgeCount,
+                    inputPoints = inputPoints
+                };
+            });
+        }
 
         #region CreatePolyShape Response Classes
 
