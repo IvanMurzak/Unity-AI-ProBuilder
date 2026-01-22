@@ -15,13 +15,12 @@ using System.ComponentModel;
 using System.Linq;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.ProBuilder;
-using UnityEngine.ProBuilder.MeshOperations;
 
 namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
@@ -40,9 +39,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderSetPivotToolId = "probuilder-set-pivot";
         [McpPluginTool
         (
-            "probuilder-set-pivot",
+            ProBuilderSetPivotToolId,
             Title = "Set the pivot point of a ProBuilder mesh"
         )]
         [Description(@"Changes the pivot (origin) point of a ProBuilder mesh.
@@ -61,92 +61,98 @@ Examples:
             [Description("Custom world position for pivot (only used when pivotLocation=Custom).")]
             Vector3? customPosition = null
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            var oldPivot = go.transform.position;
-            Vector3 newPivotWorld;
-
-            switch (pivotLocation)
+            return MainThread.Instance.Run(() =>
             {
-                case MeshPivotLocation.Center:
-                    // Get mesh bounds center in world space
-                    var meshFilter = go.GetComponent<MeshFilter>();
-                    if (meshFilter == null || meshFilter.sharedMesh == null)
-                        throw new Exception("No mesh found on GameObject.");
-                    var boundsCenter = meshFilter.sharedMesh.bounds.center;
-                    newPivotWorld = go.transform.TransformPoint(boundsCenter);
-                    break;
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
 
-                case MeshPivotLocation.FirstVertex:
-                    var positions = proBuilderMesh.positions;
-                    if (positions == null || positions.Count == 0)
-                        throw new Exception("Mesh has no vertices.");
-                    newPivotWorld = go.transform.TransformPoint(positions[0]);
-                    break;
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
 
-                case MeshPivotLocation.Custom:
-                    if (!customPosition.HasValue)
-                        throw new Exception("customPosition is required when pivotLocation is Custom.");
-                    newPivotWorld = customPosition.Value;
-                    break;
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
-                default:
-                    throw new Exception($"Unknown pivot location: {pivotLocation}");
-            }
+                var oldPivot = go.transform.position;
+                Vector3 newPivotWorld;
 
-            // Calculate offset in local space
-            var offset = go.transform.InverseTransformPoint(newPivotWorld);
-
-            try
-            {
-                // Move all vertices by the negative offset
-                var vertexPositions = proBuilderMesh.positions.ToArray();
-                for (int i = 0; i < vertexPositions.Length; i++)
+                switch (pivotLocation)
                 {
-                    vertexPositions[i] -= offset;
+                    case MeshPivotLocation.Center:
+                        // Get mesh bounds center in world space
+                        var meshFilter = go.GetComponent<MeshFilter>();
+                        if (meshFilter == null || meshFilter.sharedMesh == null)
+                            throw new Exception("No mesh found on GameObject.");
+                        var boundsCenter = meshFilter.sharedMesh.bounds.center;
+                        newPivotWorld = go.transform.TransformPoint(boundsCenter);
+                        break;
+
+                    case MeshPivotLocation.FirstVertex:
+                        var positions = proBuilderMesh.positions;
+                        if (positions == null || positions.Count == 0)
+                            throw new Exception("Mesh has no vertices.");
+                        newPivotWorld = go.transform.TransformPoint(positions[0]);
+                        break;
+
+                    case MeshPivotLocation.Custom:
+                        if (!customPosition.HasValue)
+                            throw new Exception("customPosition is required when pivotLocation is Custom.");
+                        newPivotWorld = customPosition.Value;
+                        break;
+
+                    default:
+                        throw new Exception($"Unknown pivot location: {pivotLocation}");
                 }
-                proBuilderMesh.positions = vertexPositions;
 
-                // Move the transform to compensate
-                go.transform.position = newPivotWorld;
+                // Calculate offset in local space
+                var offset = go.transform.InverseTransformPoint(newPivotWorld);
 
-                // Rebuild mesh
-                proBuilderMesh.ToMesh();
-                proBuilderMesh.Refresh();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to set pivot: {ex.Message}");
-            }
+                try
+                {
+                    // Move all vertices by the negative offset
+                    var vertexPositions = proBuilderMesh.positions.ToArray();
+                    for (int i = 0; i < vertexPositions.Length; i++)
+                    {
+                        vertexPositions[i] -= offset;
+                    }
+                    proBuilderMesh.positions = vertexPositions;
 
-            // Mark as dirty
-            EditorUtility.SetDirty(proBuilderMesh);
-            EditorUtility.SetDirty(go);
+                    // Move the transform to compensate
+                    go.transform.position = newPivotWorld;
 
-            return new SetPivotResponse
-            {
-                pivotLocation = pivotLocation.ToString(),
-                oldPivot = FormatVector3(oldPivot),
-                newPivot = FormatVector3(newPivotWorld),
-                offsetApplied = FormatVector3(offset),
-                gameObjectName = go.name,
-                newPosition = FormatVector3(go.transform.position)
-            };
-        });
+                    // Rebuild mesh
+                    proBuilderMesh.ToMesh();
+                    proBuilderMesh.Refresh();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to set pivot: {ex.Message}");
+                }
+
+                // Mark as dirty
+                EditorUtility.SetDirty(proBuilderMesh);
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
+
+                return new SetPivotResponse
+                {
+                    pivotLocation = pivotLocation.ToString(),
+                    oldPivot = FormatVector3(oldPivot),
+                    newPivot = FormatVector3(newPivotWorld),
+                    offsetApplied = FormatVector3(offset),
+                    gameObjectName = go.name,
+                    newPosition = FormatVector3(go.transform.position)
+                };
+            });
+        }
 
         #region SetPivot Response Classes
 

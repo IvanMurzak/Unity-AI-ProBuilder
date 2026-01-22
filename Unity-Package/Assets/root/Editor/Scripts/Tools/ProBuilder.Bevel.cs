@@ -15,21 +15,21 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.ProBuilder;
-using UnityEngine.ProBuilder.MeshOperations;
 
 namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderBevelToolId = "probuilder-bevel";
         [McpPluginTool
         (
-            "probuilder-bevel",
+            ProBuilderBevelToolId,
             Title = "Bevel ProBuilder edges"
         )]
         [Description(@"Bevels selected edges of a ProBuilder mesh, creating chamfered corners.
@@ -44,84 +44,88 @@ Beveling replaces sharp edges with angled faces for a smoother appearance.")]
             [Description("Bevel amount from 0 (no bevel) to 1 (maximum bevel reaching face center). Recommended values: 0.05 to 0.2.")]
             float amount = 0.1f
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            if (edges == null || edges.Length == 0)
-                throw new Exception(Error.NoEdgesProvided());
-
-            // Validate and convert edges
-            var edgeList = new List<Edge>();
-            var vertexCount = proBuilderMesh.vertexCount;
-
-            foreach (var edgeDef in edges)
+            return MainThread.Instance.Run(() =>
             {
-                if (edgeDef == null || edgeDef.Length != 2)
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
+
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
+
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
+
+                if (edges == null || edges.Length == 0)
+                    throw new Exception(Error.NoEdgesProvided());
+
+                // Validate and convert edges
+                var edgeList = new List<Edge>();
+                var vertexCount = proBuilderMesh.vertexCount;
+
+                foreach (var edgeDef in edges)
                 {
-                    throw new Exception("Each edge must be defined as an array of exactly 2 vertex indices. Example: [0, 1]");
+                    if (edgeDef == null || edgeDef.Length != 2)
+                        throw new Exception("Each edge must be defined as an array of exactly 2 vertex indices. Example: [0, 1]");
+
+                    var vertA = edgeDef[0];
+                    var vertB = edgeDef[1];
+
+                    if (vertA < 0 || vertA >= vertexCount)
+                        throw new Exception($"Vertex index {vertA} is out of range. Valid range: 0 to {vertexCount - 1}.");
+                    if (vertB < 0 || vertB >= vertexCount)
+                        throw new Exception($"Vertex index {vertB} is out of range. Valid range: 0 to {vertexCount - 1}.");
+
+                    edgeList.Add(new Edge(vertA, vertB));
                 }
 
-                var vertA = edgeDef[0];
-                var vertB = edgeDef[1];
+                // Clamp amount to valid range
+                amount = Mathf.Clamp(amount, 0.001f, 0.999f);
 
-                if (vertA < 0 || vertA >= vertexCount)
-                    throw new Exception($"Vertex index {vertA} is out of range. Valid range: 0 to {vertexCount - 1}.");
-                if (vertB < 0 || vertB >= vertexCount)
-                    throw new Exception($"Vertex index {vertB} is out of range. Valid range: 0 to {vertexCount - 1}.");
+                // Perform bevel
+                List<Face>? newFaces = null;
+                try
+                {
+                    newFaces = UnityEngine.ProBuilder.MeshOperations.Bevel.BevelEdges(proBuilderMesh, edgeList, amount);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(Error.BevelFailed(ex.Message));
+                }
 
-                edgeList.Add(new Edge(vertA, vertB));
-            }
+                if (newFaces == null || newFaces.Count == 0)
+                {
+                    throw new Exception(Error.BevelFailed("No new faces were created. The edges may not be valid for beveling or may already be at maximum bevel."));
+                }
 
-            // Clamp amount to valid range
-            amount = Mathf.Clamp(amount, 0.001f, 0.999f);
+                // Rebuild mesh
+                proBuilderMesh.ToMesh();
+                proBuilderMesh.Refresh();
 
-            // Perform bevel
-            List<Face>? newFaces = null;
-            try
-            {
-                newFaces = UnityEngine.ProBuilder.MeshOperations.Bevel.BevelEdges(proBuilderMesh, edgeList, amount);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(Error.BevelFailed(ex.Message));
-            }
+                // Mark as dirty
+                EditorUtility.SetDirty(proBuilderMesh);
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
 
-            if (newFaces == null || newFaces.Count == 0)
-            {
-                throw new Exception(Error.BevelFailed("No new faces were created. The edges may not be valid for beveling or may already be at maximum bevel."));
-            }
-
-            // Rebuild mesh
-            proBuilderMesh.ToMesh();
-            proBuilderMesh.Refresh();
-
-            // Mark as dirty
-            EditorUtility.SetDirty(proBuilderMesh);
-            EditorUtility.SetDirty(go);
-
-            return new BevelResponse
-            {
-                edgesBeveled = edgeList.Count,
-                bevelAmount = amount,
-                newFacesCreated = newFaces.Count,
-                totalFaceCount = proBuilderMesh.faceCount,
-                totalVertexCount = proBuilderMesh.vertexCount,
-                totalEdgeCount = proBuilderMesh.edgeCount
-            };
-        });
+                return new BevelResponse
+                {
+                    edgesBeveled = edgeList.Count,
+                    bevelAmount = amount,
+                    newFacesCreated = newFaces.Count,
+                    totalFaceCount = proBuilderMesh.faceCount,
+                    totalVertexCount = proBuilderMesh.vertexCount,
+                    totalEdgeCount = proBuilderMesh.edgeCount
+                };
+            });
+        }
 
         #region Bevel Response Classes
 

@@ -16,9 +16,9 @@ using System.ComponentModel;
 using System.Linq;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.ProBuilder;
@@ -27,9 +27,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderSetFaceMaterialToolId = "probuilder-set-face-material";
         [McpPluginTool
         (
-            "probuilder-set-face-material",
+            ProBuilderSetFaceMaterialToolId,
             Title = "Set material on ProBuilder faces"
         )]
         [Description(@"Assigns a material to specific faces of a ProBuilder mesh.
@@ -50,139 +51,145 @@ Examples:
             [Description("Semantic face selection by direction. Use this OR faceIndices, not both.")]
             FaceDirection? faceDirection = null
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            if (string.IsNullOrEmpty(materialPath))
-                throw new Exception("Material path is empty. Please provide a valid material path.");
-
-            // Resolve face indices from either direct indices or semantic direction
-            int[] resolvedFaceIndices;
-            string selectionMethod;
-
-            if (faceIndices != null && faceIndices.Length > 0)
+            return MainThread.Instance.Run(() =>
             {
-                resolvedFaceIndices = faceIndices;
-                selectionMethod = "by index";
-            }
-            else if (faceDirection.HasValue)
-            {
-                var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
-                if (selectionError != null)
-                    throw new Exception(selectionError);
-                resolvedFaceIndices = selectedIndices!;
-                selectionMethod = $"by direction '{faceDirection.Value}'";
-            }
-            else
-            {
-                throw new Exception("Either faceIndices or faceDirection must be provided.");
-            }
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
 
-            // Try to load the material
-            Material? material = null;
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
 
-            // First try as asset path
-            if (materialPath.StartsWith("Assets/"))
-            {
-                material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
-            }
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
-            // If not found, try to find by name
-            if (material == null)
-            {
-                var guids = AssetDatabase.FindAssets($"t:Material {materialPath}");
-                if (guids.Length > 0)
+                if (string.IsNullOrEmpty(materialPath))
+                    throw new Exception("Material path is empty. Please provide a valid material path.");
+
+                // Resolve face indices from either direct indices or semantic direction
+                int[] resolvedFaceIndices;
+                string selectionMethod;
+
+                if (faceIndices != null && faceIndices.Length > 0)
                 {
-                    var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-                    material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    resolvedFaceIndices = faceIndices;
+                    selectionMethod = "by index";
                 }
-            }
-
-            if (material == null)
-            {
-                throw new Exception($"Material not found at path '{materialPath}'. Ensure the path is correct or the material exists in the project.");
-            }
-
-            var faces = proBuilderMesh.faces;
-            var faceCount = faces.Count();
-            if (faceCount == 0)
-                throw new Exception(Error.MeshHasNoFaces());
-
-            // Validate face indices
-            var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
-            if (invalidIndices.Any())
-            {
-                throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
-            }
-
-            // Get current materials on the renderer
-            var renderer = go.GetComponent<MeshRenderer>();
-            if (renderer == null)
-            {
-                throw new Exception("No MeshRenderer found on the GameObject.");
-            }
-
-            var materials = renderer.sharedMaterials.ToList();
-
-            // Find or add the material to the materials list
-            var materialIndex = materials.IndexOf(material);
-            if (materialIndex < 0)
-            {
-                materialIndex = materials.Count;
-                materials.Add(material);
-                renderer.sharedMaterials = materials.ToArray();
-            }
-
-            // Assign the submesh index to the selected faces
-            var selectedFaces = resolvedFaceIndices.Select(i => faces[i]).ToArray();
-            foreach (var face in selectedFaces)
-            {
-                face.submeshIndex = materialIndex;
-            }
-
-            // Rebuild mesh
-            proBuilderMesh.ToMesh();
-            proBuilderMesh.Refresh();
-
-            // Mark as dirty
-            EditorUtility.SetDirty(proBuilderMesh);
-            EditorUtility.SetDirty(renderer);
-            EditorUtility.SetDirty(go);
-
-            // Build materials list for response
-            var meshMaterials = new List<MaterialInfo>();
-            for (int i = 0; i < renderer.sharedMaterials.Length; i++)
-            {
-                var mat = renderer.sharedMaterials[i];
-                meshMaterials.Add(new MaterialInfo
+                else if (faceDirection.HasValue)
                 {
-                    index = i,
-                    name = mat != null ? mat.name : "null"
-                });
-            }
+                    var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
+                    if (selectionError != null)
+                        throw new Exception(selectionError);
+                    resolvedFaceIndices = selectedIndices!;
+                    selectionMethod = $"by direction '{faceDirection.Value}'";
+                }
+                else
+                {
+                    throw new Exception("Either faceIndices or faceDirection must be provided.");
+                }
 
-            return new SetFaceMaterialResponse
-            {
-                materialName = material.name,
-                materialIndex = materialIndex,
-                selectionMethod = selectionMethod,
-                facesUpdated = resolvedFaceIndices,
-                meshMaterials = meshMaterials
-            };
-        });
+                // Try to load the material
+                Material? material = null;
+
+                // First try as asset path
+                if (materialPath.StartsWith("Assets/"))
+                {
+                    material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+                }
+
+                // If not found, try to find by name
+                if (material == null)
+                {
+                    var guids = AssetDatabase.FindAssets($"t:Material {materialPath}");
+                    if (guids.Length > 0)
+                    {
+                        var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                        material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    }
+                }
+
+                if (material == null)
+                {
+                    throw new Exception($"Material not found at path '{materialPath}'. Ensure the path is correct or the material exists in the project.");
+                }
+
+                var faces = proBuilderMesh.faces;
+                var faceCount = faces.Count();
+                if (faceCount == 0)
+                    throw new Exception(Error.MeshHasNoFaces());
+
+                // Validate face indices
+                var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
+                if (invalidIndices.Any())
+                {
+                    throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
+                }
+
+                // Get current materials on the renderer
+                var renderer = go.GetComponent<MeshRenderer>();
+                if (renderer == null)
+                {
+                    throw new Exception("No MeshRenderer found on the GameObject.");
+                }
+
+                var materials = renderer.sharedMaterials.ToList();
+
+                // Find or add the material to the materials list
+                var materialIndex = materials.IndexOf(material);
+                if (materialIndex < 0)
+                {
+                    materialIndex = materials.Count;
+                    materials.Add(material);
+                    renderer.sharedMaterials = materials.ToArray();
+                }
+
+                // Assign the submesh index to the selected faces
+                var selectedFaces = resolvedFaceIndices.Select(i => faces[i]).ToArray();
+                foreach (var face in selectedFaces)
+                {
+                    face.submeshIndex = materialIndex;
+                }
+
+                // Rebuild mesh
+                proBuilderMesh.ToMesh();
+                proBuilderMesh.Refresh();
+
+                // Mark as dirty
+                EditorUtility.SetDirty(proBuilderMesh);
+                EditorUtility.SetDirty(renderer);
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
+
+                // Build materials list for response
+                var meshMaterials = new List<MaterialInfo>();
+                for (int i = 0; i < renderer.sharedMaterials.Length; i++)
+                {
+                    var mat = renderer.sharedMaterials[i];
+                    meshMaterials.Add(new MaterialInfo
+                    {
+                        index = i,
+                        name = mat != null ? mat.name : "null"
+                    });
+                }
+
+                return new SetFaceMaterialResponse
+                {
+                    materialName = material.name,
+                    materialIndex = materialIndex,
+                    selectionMethod = selectionMethod,
+                    facesUpdated = resolvedFaceIndices,
+                    meshMaterials = meshMaterials
+                };
+            });
+        }
 
         #region SetFaceMaterial Response Classes
 

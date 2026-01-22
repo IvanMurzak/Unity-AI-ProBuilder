@@ -16,11 +16,10 @@ using System.ComponentModel;
 using System.Linq;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
+using com.IvanMurzak.Unity.MCP.Editor.Utils;
 using com.IvanMurzak.Unity.MCP.Runtime.Data;
 using com.IvanMurzak.Unity.MCP.Runtime.Extensions;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.ProBuilder;
 using UnityEngine.ProBuilder.MeshOperations;
 
@@ -28,9 +27,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
+        public const string ProBuilderExtrudeToolId = "probuilder-extrude";
         [McpPluginTool
         (
-            "probuilder-extrude",
+            ProBuilderExtrudeToolId,
             Title = "Extrude ProBuilder faces"
         )]
         [Description(@"Extrudes selected faces of a ProBuilder mesh along their normals.
@@ -53,107 +53,113 @@ Examples:
             [Description("Extrusion method: IndividualFaces (each face extrudes independently), FaceNormal (faces extrude as a group along averaged normal), VertexNormal (vertices move along their normals).")]
             ExtrudeMethod extrudeMethod = ExtrudeMethod.FaceNormal
         )
-        => MainThread.Instance.Run(() =>
         {
-            if (gameObjectRef?.IsValid != true)
-                throw new Exception("Invalid GameObject reference provided.");
+            if (gameObjectRef == null)
+                throw new ArgumentNullException(nameof(gameObjectRef));
 
-            var go = gameObjectRef.FindGameObject(out var error);
-            if (error != null)
-                throw new Exception(error);
+            if (!gameObjectRef.IsValid(out var gameObjectValidationError))
+                throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 
-            if (go == null)
-                throw new Exception(Error.GameObjectNotFound());
-
-            var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
-            if (proBuilderMesh == null)
-                throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
-
-            // Resolve face indices from either direct indices or semantic direction
-            int[] resolvedFaceIndices;
-            string selectionMethod;
-
-            if (faceIndices != null && faceIndices.Length > 0)
+            return MainThread.Instance.Run(() =>
             {
-                resolvedFaceIndices = faceIndices;
-                selectionMethod = "by index";
-            }
-            else if (faceDirection.HasValue)
-            {
-                var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
-                if (selectionError != null)
-                    throw new Exception(selectionError);
-                resolvedFaceIndices = selectedIndices!;
-                selectionMethod = $"by direction '{faceDirection.Value}'";
-            }
-            else
-            {
-                throw new Exception("Either faceIndices or faceDirection must be provided.");
-            }
+                var go = gameObjectRef.FindGameObject(out var error);
+                if (error != null)
+                    throw new Exception(error);
 
-            var faces = proBuilderMesh.faces;
-            var faceCount = faces.Count();
-            if (faceCount == 0)
-                throw new Exception(Error.MeshHasNoFaces());
+                if (go == null)
+                    throw new Exception(Error.GameObjectNotFound());
 
-            // Validate face indices
-            var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
-            if (invalidIndices.Any())
-            {
-                throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
-            }
+                var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
+                if (proBuilderMesh == null)
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
-            // Get the faces to extrude
-            var facesToExtrude = resolvedFaceIndices.Select(i => faces[i]).ToArray();
+                // Resolve face indices from either direct indices or semantic direction
+                int[] resolvedFaceIndices;
+                string selectionMethod;
 
-            // Perform extrusion
-            Face[]? newFaces = null;
-            try
-            {
-                newFaces = proBuilderMesh.Extrude(facesToExtrude, extrudeMethod, distance);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(Error.ExtrusionFailed(ex.Message));
-            }
+                if (faceIndices != null && faceIndices.Length > 0)
+                {
+                    resolvedFaceIndices = faceIndices;
+                    selectionMethod = "by index";
+                }
+                else if (faceDirection.HasValue)
+                {
+                    var selectedIndices = FaceSelectionHelper.SelectFacesByDirection(proBuilderMesh, faceDirection.Value, out var selectionError);
+                    if (selectionError != null)
+                        throw new Exception(selectionError);
+                    resolvedFaceIndices = selectedIndices!;
+                    selectionMethod = $"by direction '{faceDirection.Value}'";
+                }
+                else
+                {
+                    throw new Exception("Either faceIndices or faceDirection must be provided.");
+                }
 
-            if (newFaces == null || newFaces.Length == 0)
-            {
-                throw new Exception(Error.ExtrusionFailed("No new faces were created. The operation may not be valid for this mesh configuration."));
-            }
+                var faces = proBuilderMesh.faces;
+                var faceCount = faces.Count();
+                if (faceCount == 0)
+                    throw new Exception(Error.MeshHasNoFaces());
 
-            // Rebuild mesh
-            proBuilderMesh.ToMesh();
-            proBuilderMesh.Refresh();
+                // Validate face indices
+                var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
+                if (invalidIndices.Any())
+                {
+                    throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
+                }
 
-            // Mark as dirty
-            EditorUtility.SetDirty(proBuilderMesh);
-            EditorUtility.SetDirty(go);
+                // Get the faces to extrude
+                var facesToExtrude = resolvedFaceIndices.Select(i => faces[i]).ToArray();
 
-            // Find new face indices
-            var allFaces = proBuilderMesh.faces;
-            var newFaceIndices = new List<int>();
-            var allFaceCount = allFaces.Count();
-            for (int i = 0; i < allFaceCount; i++)
-            {
-                if (newFaces.Contains(allFaces[i]))
-                    newFaceIndices.Add(i);
-            }
+                // Perform extrusion
+                Face[]? newFaces = null;
+                try
+                {
+                    newFaces = proBuilderMesh.Extrude(facesToExtrude, extrudeMethod, distance);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(Error.ExtrusionFailed(ex.Message));
+                }
 
-            return new ExtrudeResponse
-            {
-                extrudedFaceCount = facesToExtrude.Length,
-                selectionMethod = selectionMethod,
-                extrudedFaceIndices = resolvedFaceIndices,
-                extrudeMethod = extrudeMethod.ToString(),
-                distance = distance,
-                newFacesCreated = newFaces.Length,
-                newFaceIndices = newFaceIndices.ToArray(),
-                totalFaceCount = proBuilderMesh.faceCount,
-                totalVertexCount = proBuilderMesh.vertexCount,
-                totalEdgeCount = proBuilderMesh.edgeCount
-            };
-        });
+                if (newFaces == null || newFaces.Length == 0)
+                {
+                    throw new Exception(Error.ExtrusionFailed("No new faces were created. The operation may not be valid for this mesh configuration."));
+                }
+
+                // Rebuild mesh
+                proBuilderMesh.ToMesh();
+                proBuilderMesh.Refresh();
+
+                // Mark as dirty
+                EditorUtility.SetDirty(proBuilderMesh);
+                EditorUtility.SetDirty(go);
+                EditorUtils.RepaintAllEditorWindows();
+
+                // Find new face indices
+                var allFaces = proBuilderMesh.faces;
+                var newFaceIndices = new List<int>();
+                var allFaceCount = allFaces.Count();
+                for (int i = 0; i < allFaceCount; i++)
+                {
+                    if (newFaces.Contains(allFaces[i]))
+                        newFaceIndices.Add(i);
+                }
+
+                return new ExtrudeResponse
+                {
+                    extrudedFaceCount = facesToExtrude.Length,
+                    selectionMethod = selectionMethod,
+                    extrudedFaceIndices = resolvedFaceIndices,
+                    extrudeMethod = extrudeMethod.ToString(),
+                    distance = distance,
+                    newFacesCreated = newFaces.Length,
+                    newFaceIndices = newFaceIndices.ToArray(),
+                    totalFaceCount = proBuilderMesh.faceCount,
+                    totalVertexCount = proBuilderMesh.vertexCount,
+                    totalEdgeCount = proBuilderMesh.edgeCount
+                };
+            });
+        }
 
         #region Extrude Response Classes
 
