@@ -30,7 +30,8 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [McpPluginTool
         (
             ProBuilderDeleteFacesToolId,
-            Title = "Delete ProBuilder faces"
+            Title = "Delete ProBuilder faces",
+            DestructiveHint = true
         )]
         [Description(@"Deletes selected faces from a ProBuilder mesh.
 You can select faces by index OR by direction (semantic selection).

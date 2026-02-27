@@ -31,7 +31,8 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [McpPluginTool
         (
             ProBuilderSetFaceMaterialToolId,
-            Title = "Set material on ProBuilder faces"
+            Title = "Set material on ProBuilder faces",
+            IdempotentHint = true
         )]
         [Description(@"Assigns a material to specific faces of a ProBuilder mesh.
 You can select faces by index OR by direction (semantic selection).
