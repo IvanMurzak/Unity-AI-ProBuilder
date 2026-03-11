@@ -48,5 +48,5 @@
       ]
     }
   ],
-  "testables": ["com.ivanmurzak.unity.mcp.probuilder"]
+  "testables": ["com.ivanmurzak.unity.mcp.probuilder", "com.ivanmurzak.unity.mcp"]
 }
