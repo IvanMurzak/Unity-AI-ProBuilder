@@ -31,7 +31,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [McpPluginTool
         (
             ProBuilderExtrudeToolId,
-            Title = "Extrude ProBuilder faces"
+            Title = "Extrude ProBuilder faces",
+            ReadOnlyHint = false,
+            DestructiveHint = false,
+            IdempotentHint = false,
+            OpenWorldHint = false
         )]
         [Description(@"Extrudes selected faces of a ProBuilder mesh along their normals.
 You can select faces by index OR by direction (semantic selection).

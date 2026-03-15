@@ -44,7 +44,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         (
             ProBuilderSetPivotToolId,
             Title = "Set the pivot point of a ProBuilder mesh",
-            IdempotentHint = true
+            Enabled = false,
+            ReadOnlyHint = false,
+            DestructiveHint = false,
+            IdempotentHint = true,
+            OpenWorldHint = false
         )]
         [Description(@"Changes the pivot (origin) point of a ProBuilder mesh.
 The mesh geometry is adjusted so the pivot moves without changing the visual position.

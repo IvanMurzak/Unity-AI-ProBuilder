@@ -31,7 +31,12 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [McpPluginTool
         (
             ProBuilderConnectEdgesToolId,
-            Title = "Connect edges in a ProBuilder mesh"
+            Title = "Connect edges in a ProBuilder mesh",
+            Enabled = false,
+            ReadOnlyHint = false,
+            DestructiveHint = false,
+            IdempotentHint = false,
+            OpenWorldHint = false
         )]
         [Description(@"Inserts new edges connecting the midpoints of selected edges within faces.
 If a face has more than 2 edges to connect, a center vertex is added.

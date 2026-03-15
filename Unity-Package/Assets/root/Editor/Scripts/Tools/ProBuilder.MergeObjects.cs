@@ -33,7 +33,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         (
             ProBuilderMergeObjectsToolId,
             Title = "Merge multiple ProBuilder meshes into one",
-            DestructiveHint = true
+            Enabled = false,
+            ReadOnlyHint = false,
+            DestructiveHint = true,
+            IdempotentHint = false,
+            OpenWorldHint = false
         )]
         [Description(@"Combines multiple ProBuilder meshes into a single mesh.
 Useful for optimizing draw calls or creating a unified object from parts.

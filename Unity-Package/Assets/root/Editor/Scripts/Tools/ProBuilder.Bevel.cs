@@ -30,7 +30,12 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [McpPluginTool
         (
             ProBuilderBevelToolId,
-            Title = "Bevel ProBuilder edges"
+            Title = "Bevel ProBuilder edges",
+            Enabled = false,
+            ReadOnlyHint = false,
+            DestructiveHint = false,
+            IdempotentHint = false,
+            OpenWorldHint = false
         )]
         [Description(@"Bevels selected edges of a ProBuilder mesh, creating chamfered corners.
 Use ProBuilder_GetMeshInfo to identify edges by their vertex pairs.
