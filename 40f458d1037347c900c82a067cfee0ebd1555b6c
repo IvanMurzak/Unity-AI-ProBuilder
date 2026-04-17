@@ -1,0 +1,48 @@
+"Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Tests/Files/Correct/correct_manifest.json"
+  a33c68edc6aa4eae 14
+Unity-Package/Assets/root/Tests/Runtime/com.IvanMurzak.Unity.MCP.ProBuilder.Tests.asmdef
+  a33c68edc6aa4eae 8-10,24-25,27,29-30
+Unity-Package/Packages/manifest.json
+  h_9a61b2ff2f3edc 26
+"Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Tests/Files/scopes_partial_3.json"
+  a33c68edc6aa4eae 14
+Unity-Package/Assets/root/Editor/Scripts/com.IvanMurzak.Unity.MCP.ProBuilder.Editor.asmdef
+  a33c68edc6aa4eae 25-27
+Unity-Package/Assets/root/Tests/Editor/com.IvanMurzak.Unity.MCP.ProBuilder.Editor.Tests.asmdef
+  a33c68edc6aa4eae 10-12,28-29,31,33-34
+"Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Tests/Files/scopes_partial_1.json"
+  a33c68edc6aa4eae 13
+Installer/ProjectSettings/ProjectSettings.asset
+  a33c68edc6aa4eae 291-383
+Unity-Package/Packages/packages-lock.json
+  a33c68edc6aa4eae 4,10,69
+Unity-Package/Assets/root/Runtime/com.IvanMurzak.Unity.MCP.ProBuilder.Runtime.asmdef
+  a33c68edc6aa4eae 15-17
+"Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Tests/ManifestInstallerTests.cs"
+  a33c68edc6aa4eae 10,24-27,29-30,33-35,39-42,45-46,48-52,54,56-58,60-61,63-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "40f458d1037347c900c82a067cfee0ebd1555b6c",
+  "prompts": {
+    "a33c68edc6aa4eae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "29834749-6539-49c9-89f7-1d2dc7cf09bb",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Ivan Murzak",
+      "messages": [],
+      "total_additions": 152,
+      "total_deletions": 279,
+      "accepted_lines": 278,
+      "overriden_lines": 0
+    }
+  },
+  "humans": {
+    "h_9a61b2ff2f3edc": {
+      "author": "Ivan Murzak"
+    }
+  }
+}
