@@ -19,7 +19,7 @@ namespace com.IvanMurzak.Unity.MCP.ProBuilder.Installer
     public static partial class Installer
     {
         public const string PackageId = "com.ivanmurzak.unity.mcp.probuilder";
-        public const string Version = "1.0.70";
+        public const string Version = "1.0.71";
 
         static Installer()
         {
