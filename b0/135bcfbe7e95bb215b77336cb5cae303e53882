@@ -1,0 +1,7 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "b0135bcfbe7e95bb215b77336cb5cae303e53882",
+  "prompts": {}
+}
