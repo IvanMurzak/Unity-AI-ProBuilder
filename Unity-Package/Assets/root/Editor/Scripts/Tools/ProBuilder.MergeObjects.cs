@@ -39,6 +39,22 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Combine multiple `ProBuilderMesh` GameObjects into one merged mesh. The first " +
+            "GameObject in the list becomes the merge target. Source GameObjects are deleted by default. " +
+            "Useful for optimizing draw calls and unifying composite props.")]
+        [McpPluginSkillBody("Combine multiple `ProBuilderMesh` GameObjects into a single merged mesh. The first " +
+            "GameObject in `gameObjectRefs` becomes the merge target — subsequent meshes are absorbed into it. " +
+            "Useful for optimizing draw calls or creating a unified object from parts.\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRefs` — array of GameObject references (≥2). Each must carry a `ProBuilderMesh` " +
+            "component. The first reference is the merge target.\n" +
+            "- `deleteSourceObjects` — when `true` (default), delete the non-target source GameObjects after " +
+            "merging. Set `false` to keep them in the scene.\n\n" +
+            "## Example\n\n" +
+            "Merge a table assembled from four leg meshes and a top into a single GameObject for shipping.\n\n" +
+            "## Behavior\n\n" +
+            "All meshes are rebuilt (`ToMesh` → `Refresh`), the resulting GameObject is marked dirty, and the " +
+            "Editor repaints. The whole call runs on the Unity main thread.")]
         [Description(@"Combines multiple ProBuilder meshes into a single mesh.
 Useful for optimizing draw calls or creating a unified object from parts.
 The first mesh in the list becomes the target that others merge into.

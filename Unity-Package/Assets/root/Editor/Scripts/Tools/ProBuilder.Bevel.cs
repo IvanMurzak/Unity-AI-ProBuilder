@@ -37,6 +37,23 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Bevel (chamfer) selected edges of a `ProBuilderMesh`, replacing each sharp edge " +
+            "with an angled face. Identify edges by their `[vertexA, vertexB]` index pairs — use " +
+            "'" + ProBuilderGetMeshInfoToolId + "' to discover them. `amount` is clamped to (0, 1).")]
+        [McpPluginSkillBody("Bevel (chamfer) selected edges of a `ProBuilderMesh`, replacing each sharp edge with " +
+            "an angled face for a smoother appearance. Use '" + ProBuilderGetMeshInfoToolId + "' first to " +
+            "discover edges by their vertex pairs.\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
+            "- `edges` — array of edge definitions; each edge is `[vertexA, vertexB]`. Example: " +
+            "`[[0,1], [2,3]]` bevels two edges.\n" +
+            "- `amount` — bevel strength in the range (0, 1). `0.001` is barely visible, `0.999` reaches face " +
+            "center. Recommended `0.05`–`0.2`. Internally clamped.\n\n" +
+            "## Behavior\n\n" +
+            "Vertex indices are validated against `vertexCount`. After `BevelEdges` runs, the mesh is rebuilt " +
+            "(`ToMesh` → `Refresh`), the `ProBuilderMesh` and GameObject are marked dirty, and Editor windows " +
+            "repaint. Returns the number of edges processed, the clamped amount, and post-op face/vertex/edge " +
+            "counts. The whole call runs on the Unity main thread.")]
         [Description(@"Bevels selected edges of a ProBuilder mesh, creating chamfered corners.
 Use ProBuilder_GetMeshInfo to identify edges by their vertex pairs.
 Beveling replaces sharp edges with angled faces for a smoother appearance.")]

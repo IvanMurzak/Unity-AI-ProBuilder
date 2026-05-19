@@ -36,6 +36,26 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Create a new editable `ProBuilderMesh` GameObject in the active scene from a " +
+            "`ShapeType` primitive (Cube, Cylinder, Sphere, Plane, Prism, Cone, Stair, etc.). Optionally set " +
+            "name, parent, transform, size, and world/local space.")]
+        [McpPluginSkillBody("Create a new editable `ProBuilderMesh` GameObject in the active scene. ProBuilder " +
+            "shapes are editable 3D meshes that can be further modified with the rest of the ProBuilder tools " +
+            "(extrude, bevel, subdivide, etc.).\n\n" +
+            "## Inputs\n\n" +
+            "- `shapeType` — `ShapeType` enum (Cube, Cylinder, Sphere, Plane, Prism, Cone, Stair, Door, " +
+            "Pipe, Arch, Sprite, Torus, etc.).\n" +
+            "- `name` — optional GameObject name.\n" +
+            "- `parentGameObjectRef` — optional parent; root of the scene when omitted.\n" +
+            "- `position`, `rotation`, `scale` — optional `Vector3` transform values. Rotation is euler degrees. " +
+            "Defaults: zero / zero / one.\n" +
+            "- `size` — `Vector3` width/height/depth of the generated shape. Default `(1, 1, 1)`.\n" +
+            "- `isLocalSpace` — when `true`, position/rotation/scale are interpreted in the parent's local " +
+            "space; otherwise world space.\n\n" +
+            "## Behavior\n\n" +
+            "Uses `ShapeGenerator.CreateShape` with `PivotLocation.Center`, applies the transform values, " +
+            "rebuilds the mesh, marks dirty, and repaints the Editor. The whole call runs on the Unity main " +
+            "thread.")]
         [Description(@"Creates a new ProBuilder mesh shape in the scene. ProBuilder shapes are editable 3D meshes
 that can be modified using other ProBuilder tools like extrusion, beveling, etc.")]
         public CreateShapeResponse CreateShape

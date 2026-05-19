@@ -37,6 +37,24 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = true,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Assign a material to specific faces of a `ProBuilderMesh`, enabling " +
+            "multi-material meshes (e.g., grass on top, dirt on sides). Supply either `faceIndices` (explicit) " +
+            "or `faceDirection` (semantic); exactly one is required.")]
+        [McpPluginSkillBody("Assign a material to specific faces of a `ProBuilderMesh`, enabling multi-material " +
+            "meshes where different faces have different materials (e.g., grass on top, dirt on the sides).\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
+            "- `materialPath` — project path to the material asset (e.g., `Assets/Materials/Grass.mat`) or a " +
+            "bare material name. Required.\n" +
+            "- `faceIndices` — explicit array of face indices.\n" +
+            "- `faceDirection` — semantic alternative (`Up`, `Down`, `Left`, `Right`, `Forward`, `Back`). " +
+            "Exactly one of `faceIndices` / `faceDirection` is required.\n\n" +
+            "## Examples\n\n" +
+            "- Set material on the top face: `faceDirection=\"up\"`.\n" +
+            "- Set material on specific faces: `faceIndices=[0, 2, 4]`.\n\n" +
+            "## Behavior\n\n" +
+            "The mesh is rebuilt (`ToMesh` → `Refresh`), dirty-flagged, and the Editor repaints. The whole call " +
+            "runs on the Unity main thread.")]
         [Description(@"Assigns a material to specific faces of a ProBuilder mesh.
 You can select faces by index OR by direction (semantic selection).
 This enables multi-material meshes where different faces have different materials.

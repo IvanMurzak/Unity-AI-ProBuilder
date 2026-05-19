@@ -36,6 +36,25 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Reverse the normal direction of selected faces in a `ProBuilderMesh`, flipping " +
+            "them inside-out. Useful for creating interior spaces (a room from the inside of a cube) or fixing " +
+            "inverted faces. Defaults to all faces when no selection is supplied.")]
+        [McpPluginSkillBody("Reverse the normal direction of selected faces in a `ProBuilderMesh`, flipping them " +
+            "inside-out. Useful for creating interior spaces (a room from the inside of a cube) or fixing " +
+            "inverted faces produced by other operations.\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
+            "- `faceIndices` — optional explicit list of face indices to flip.\n" +
+            "- `faceDirection` — optional semantic alternative (`Up`, `Down`, `Left`, `Right`, `Forward`, " +
+            "`Back`).\n\n" +
+            "When both are omitted, **every face** is flipped.\n\n" +
+            "## Examples\n\n" +
+            "- Flip all faces: leave both `faceIndices` and `faceDirection` empty.\n" +
+            "- Flip top face only: `faceDirection=Up`.\n" +
+            "- Flip specific faces: `faceIndices=[0, 2, 4]`.\n\n" +
+            "## Behavior\n\n" +
+            "The mesh is rebuilt (`ToMesh` → `Refresh`), dirty-flagged, and the Editor repaints. The whole call " +
+            "runs on the Unity main thread.")]
         [Description(@"Reverses the normal direction of selected faces, flipping them inside-out.
 Useful for creating interior spaces or fixing inverted faces.
 
