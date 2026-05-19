@@ -38,6 +38,22 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Insert new edges connecting the midpoints of selected edges within faces of a " +
+            "`ProBuilderMesh` — adds edge loops and extra geometry detail. Supply either `edges` (explicit list) " +
+            "or `faceDirection` (semantic selection); exactly one is required.")]
+        [McpPluginSkillBody("Insert new edges connecting the midpoints of selected edges within faces of a " +
+            "`ProBuilderMesh`. When a face has more than two edges to connect, a center vertex is added. " +
+            "Useful for creating new edge loops and adding geometry detail.\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
+            "- `edges` — explicit list of edges to connect, each as `[vertexA, vertexB]`. Use " +
+            "'" + ProBuilderGetMeshInfoToolId + "' to discover valid indices.\n" +
+            "- `faceDirection` — semantic alternative: connects all edges of faces pointing this direction " +
+            "(`Up`, `Down`, `Left`, `Right`, `Forward`, `Back`). Exactly one of `edges` / `faceDirection` is " +
+            "required.\n\n" +
+            "## Examples\n\n" +
+            "- Connect opposite edges of the top face: `faceDirection=\"up\"`.\n" +
+            "- Connect specific edges: `edges=[[0,1], [2,3]]`.")]
         [Description(@"Inserts new edges connecting the midpoints of selected edges within faces.
 If a face has more than 2 edges to connect, a center vertex is added.
 This is useful for creating new edge loops and adding geometry detail.

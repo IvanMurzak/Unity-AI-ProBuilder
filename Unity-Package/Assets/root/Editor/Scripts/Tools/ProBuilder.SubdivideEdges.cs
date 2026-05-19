@@ -38,6 +38,24 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Insert new vertices on selected edges of a `ProBuilderMesh`, splitting each " +
+            "edge into smaller segments. Supply either `edges` (explicit list) or `faceDirection` (subdivides " +
+            "all edges of faces facing that direction); exactly one is required.")]
+        [McpPluginSkillBody("Insert new vertices on selected edges of a `ProBuilderMesh`, subdividing each into " +
+            "smaller segments. Useful for adding detail to specific edges for further manipulation (extrude, " +
+            "bevel, etc.).\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
+            "- `edges` — explicit list of edges to subdivide, each as `[vertexA, vertexB]`. Use " +
+            "'" + ProBuilderGetMeshInfoToolId + "' to discover valid edges.\n" +
+            "- `faceDirection` — semantic alternative: subdivides all edges of faces pointing this direction " +
+            "(`Up`, `Down`, `Left`, `Right`, `Forward`, `Back`). Exactly one of `edges` / `faceDirection` is " +
+            "required.\n" +
+            "- `subdivisions` — number of subdivisions per edge. `1` splits each edge in half, `2` into thirds, " +
+            "and so on. Default `1`.\n\n" +
+            "## Examples\n\n" +
+            "- Subdivide all edges of the top face: `faceDirection=\"up\"`, `subdivisions=2`.\n" +
+            "- Subdivide specific edges: `edges=[[0,1], [2,3]]`, `subdivisions=1`.")]
         [Description(@"Inserts new vertices on edges, subdividing them into smaller segments.
 Useful for adding detail to specific edges for further manipulation.
 

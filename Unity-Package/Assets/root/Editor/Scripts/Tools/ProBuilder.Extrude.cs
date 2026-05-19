@@ -37,6 +37,27 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Extrude selected faces of a `ProBuilderMesh` along their normals, creating new " +
+            "geometry. Supply either `faceIndices` (explicit) or `faceDirection` (semantic); exactly one is " +
+            "required. Positive `distance` extrudes outward, negative inward.")]
+        [McpPluginSkillBody("Extrude selected faces of a `ProBuilderMesh` along their normals, creating new " +
+            "geometry by pushing faces outward (positive distance) or inward (negative distance). Faces can be " +
+            "selected explicitly by index or semantically by direction.\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
+            "- `faceIndices` — explicit array of face indices to extrude.\n" +
+            "- `faceDirection` — semantic alternative (`Up`, `Down`, `Left`, `Right`, `Forward`, `Back`). " +
+            "Exactly one of `faceIndices` / `faceDirection` is required.\n" +
+            "- `distance` — extrusion distance. Positive = outward, negative = inward. Default `0.5`.\n" +
+            "- `extrudeMethod` — `IndividualFaces` (each face extrudes independently), `FaceNormal` (faces " +
+            "extrude as a group along the averaged normal — the default), or `VertexNormal` (vertices move " +
+            "along their normals).\n\n" +
+            "## Examples\n\n" +
+            "- Extrude the top face up by 1 unit: `faceDirection=\"up\"`, `distance=1`.\n" +
+            "- Extrude specific faces: `faceIndices=[0, 2, 4]`.\n\n" +
+            "## Behavior\n\n" +
+            "The mesh is rebuilt (`ToMesh` → `Refresh`), dirty-flagged, and the Editor repaints. The whole call " +
+            "runs on the Unity main thread.")]
         [Description(@"Extrudes selected faces of a ProBuilder mesh along their normals.
 You can select faces by index OR by direction (semantic selection).
 Extrusion creates new geometry by pushing faces outward (or inward with negative distance).

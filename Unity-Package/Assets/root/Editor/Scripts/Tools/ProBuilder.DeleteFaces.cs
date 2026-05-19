@@ -36,6 +36,23 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
+        [McpPluginSkillDescription("Delete selected faces from a `ProBuilderMesh`, creating holes or removing " +
+            "geometry. Supply either `faceIndices` (explicit list) or `faceDirection` (semantic selection); " +
+            "exactly one is required.")]
+        [McpPluginSkillBody("Delete selected faces from a `ProBuilderMesh`, creating holes or removing geometry " +
+            "entirely. Faces can be selected explicitly by index or semantically by direction.\n\n" +
+            "## Inputs\n\n" +
+            "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
+            "- `faceIndices` — explicit array of face indices to delete. Use " +
+            "'" + ProBuilderGetMeshInfoToolId + "' to discover valid indices.\n" +
+            "- `faceDirection` — semantic alternative (`Up`, `Down`, `Left`, `Right`, `Forward`, `Back`). " +
+            "Exactly one of `faceIndices` / `faceDirection` is required.\n\n" +
+            "## Examples\n\n" +
+            "- Delete the bottom face: `faceDirection=\"down\"`.\n" +
+            "- Delete specific faces: `faceIndices=[0, 2, 4]`.\n\n" +
+            "## Behavior\n\n" +
+            "The mesh is rebuilt (`ToMesh` → `Refresh`), the `ProBuilderMesh` and GameObject are marked dirty, " +
+            "and Editor windows repaint. The whole call runs on the Unity main thread.")]
         [Description(@"Deletes selected faces from a ProBuilder mesh.
 You can select faces by index OR by direction (semantic selection).
 Deleting faces creates holes in the mesh or removes geometry entirely.
