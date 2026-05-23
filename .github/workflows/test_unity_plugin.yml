@@ -86,6 +86,32 @@ jobs:
           key: Library-${{ inputs.unityVersion }}-${{ inputs.testMode }}-${{ matrix.platform }}
 
       # --------------------------------------------------------------------- #
+      # Strip stale com.ivanmurzak.unity.mcp* entries from Library/PackageCache.
+      # The cache restore above can resurrect a PackageCache directory from a
+      # run where com.ivanmurzak.unity.mcp was pinned to an older version. When
+      # Unity then resolves the currently pinned version (per package.json) on
+      # top, BOTH directories appear under Library/PackageCache and the Package
+      # Manager registers BOTH as installed — e.g. 0.66.1 from the stale cache
+      # AND 0.75.1 from the fresh resolve. The 0.75.1 source uses [AiPrompt*]
+      # types that only exist in the 0.75.1 DLLs, but the loader's class-table
+      # is contaminated by the 0.66.1 assemblies, producing CS0246 errors at
+      # compile time:
+      #     error CS0246: The type or namespace name 'AiPromptTypeAttribute'
+      #     could not be found
+      # Forcing a clean re-resolve every run resolves this — the rest of the
+      # Library cache (build artifacts, scripted importers, etc.) survives.
+      - name: Strip stale com.ivanmurzak.unity.mcp PackageCache entries
+        shell: bash
+        run: |
+          cache_dir="${{ inputs.projectPath }}/Library/PackageCache"
+          if [ -d "$cache_dir" ]; then
+            echo "Cache dir exists. Checking for stale com.ivanmurzak.unity.mcp* entries:"
+            find "$cache_dir" -maxdepth 1 -type d -name 'com.ivanmurzak.unity.mcp*' -print -exec rm -rf {} +
+          else
+            echo "Cache dir $cache_dir not present — nothing to clean."
+          fi
+
+      # --------------------------------------------------------------------- #
       - name: Generate custom image name
         id: custom_image
         run: echo "image=unityci/editor:ubuntu-${{ inputs.unityVersion }}-${{ matrix.platform }}-3" >> $GITHUB_OUTPUT
