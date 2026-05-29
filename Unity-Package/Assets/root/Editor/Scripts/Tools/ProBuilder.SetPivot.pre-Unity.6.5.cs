@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.ComponentModel;
@@ -103,7 +103,7 @@ Examples:
 
                 var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
                 if (proBuilderMesh == null)
-                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetEntityId()));
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
                 var oldPivot = go.transform.position;
                 Vector3 newPivotWorld;

@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.Collections.Generic;
@@ -85,7 +85,7 @@ Beveling replaces sharp edges with angled faces for a smoother appearance.")]
 
                 var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
                 if (proBuilderMesh == null)
-                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetEntityId()));
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
                 if (edges == null || edges.Length == 0)
                     throw new Exception(Error.NoEdgesProvided());

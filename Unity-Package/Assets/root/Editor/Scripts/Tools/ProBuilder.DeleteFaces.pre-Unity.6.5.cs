@@ -9,10 +9,9 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using com.IvanMurzak.McpPlugin;
@@ -28,56 +27,48 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
-        public const string ProBuilderExtrudeToolId = "probuilder-extrude";
+        public const string ProBuilderDeleteFacesToolId = "probuilder-delete-faces";
         [AiTool
         (
-            ProBuilderExtrudeToolId,
-            Title = "Extrude ProBuilder faces",
+            ProBuilderDeleteFacesToolId,
+            Title = "Delete ProBuilder faces",
             ReadOnlyHint = false,
-            DestructiveHint = false,
+            DestructiveHint = true,
             IdempotentHint = false,
             OpenWorldHint = false
         )]
-        [AiSkillDescription("Extrude selected faces of a `ProBuilderMesh` along their normals, creating new " +
-            "geometry. Supply either `faceIndices` (explicit) or `faceDirection` (semantic); exactly one is " +
-            "required. Positive `distance` extrudes outward, negative inward.")]
-        [AiSkillBody("Extrude selected faces of a `ProBuilderMesh` along their normals, creating new " +
-            "geometry by pushing faces outward (positive distance) or inward (negative distance). Faces can be " +
-            "selected explicitly by index or semantically by direction.\n\n" +
+        [AiSkillDescription("Delete selected faces from a `ProBuilderMesh`, creating holes or removing " +
+            "geometry. Supply either `faceIndices` (explicit list) or `faceDirection` (semantic selection); " +
+            "exactly one is required.")]
+        [AiSkillBody("Delete selected faces from a `ProBuilderMesh`, creating holes or removing geometry " +
+            "entirely. Faces can be selected explicitly by index or semantically by direction.\n\n" +
             "## Inputs\n\n" +
             "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
-            "- `faceIndices` — explicit array of face indices to extrude.\n" +
+            "- `faceIndices` — explicit array of face indices to delete. Use " +
+            "'" + ProBuilderGetMeshInfoToolId + "' to discover valid indices.\n" +
             "- `faceDirection` — semantic alternative (`Up`, `Down`, `Left`, `Right`, `Forward`, `Back`). " +
-            "Exactly one of `faceIndices` / `faceDirection` is required.\n" +
-            "- `distance` — extrusion distance. Positive = outward, negative = inward. Default `0.5`.\n" +
-            "- `extrudeMethod` — `IndividualFaces` (each face extrudes independently), `FaceNormal` (faces " +
-            "extrude as a group along the averaged normal — the default), or `VertexNormal` (vertices move " +
-            "along their normals).\n\n" +
+            "Exactly one of `faceIndices` / `faceDirection` is required.\n\n" +
             "## Examples\n\n" +
-            "- Extrude the top face up by 1 unit: `faceDirection=\"up\"`, `distance=1`.\n" +
-            "- Extrude specific faces: `faceIndices=[0, 2, 4]`.\n\n" +
+            "- Delete the bottom face: `faceDirection=\"down\"`.\n" +
+            "- Delete specific faces: `faceIndices=[0, 2, 4]`.\n\n" +
             "## Behavior\n\n" +
-            "The mesh is rebuilt (`ToMesh` → `Refresh`), dirty-flagged, and the Editor repaints. The whole call " +
-            "runs on the Unity main thread.")]
-        [Description(@"Extrudes selected faces of a ProBuilder mesh along their normals.
+            "The mesh is rebuilt (`ToMesh` → `Refresh`), the `ProBuilderMesh` and GameObject are marked dirty, " +
+            "and Editor windows repaint. The whole call runs on the Unity main thread.")]
+        [Description(@"Deletes selected faces from a ProBuilder mesh.
 You can select faces by index OR by direction (semantic selection).
-Extrusion creates new geometry by pushing faces outward (or inward with negative distance).
+Deleting faces creates holes in the mesh or removes geometry entirely.
 
 Examples:
-- Extrude top face: faceDirection=""up""
-- Extrude specific faces: faceIndices=[0, 2, 4]")]
-        public ExtrudeResponse Extrude
+- Delete bottom face: faceDirection=""down""
+- Delete specific faces: faceIndices=[0, 2, 4]")]
+        public DeleteFacesResponse DeleteFaces
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
-            [Description("Array of face indices to extrude. Use this OR faceDirection, not both. Use ProBuilder_GetMeshInfo to get valid face indices.")]
+            [Description("Array of face indices to delete. Use this OR faceDirection, not both. Use ProBuilder_GetMeshInfo to get valid face indices.")]
             int[]? faceIndices = null,
             [Description("Semantic face selection by direction. Use this OR faceIndices, not both.")]
-            FaceDirection? faceDirection = null,
-            [Description("Distance to extrude the faces. Positive values extrude outward along face normals, negative values extrude inward.")]
-            float distance = 0.5f,
-            [Description("Extrusion method: IndividualFaces (each face extrudes independently), FaceNormal (faces extrude as a group along averaged normal), VertexNormal (vertices move along their normals).")]
-            ExtrudeMethod extrudeMethod = ExtrudeMethod.FaceNormal
+            FaceDirection? faceDirection = null
         )
         {
             if (gameObjectRef == null)
@@ -97,7 +88,7 @@ Examples:
 
                 var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
                 if (proBuilderMesh == null)
-                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetEntityId()));
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
                 // Resolve face indices from either direct indices or semantic direction
                 int[] resolvedFaceIndices;
@@ -126,30 +117,36 @@ Examples:
                 if (faceCount == 0)
                     throw new Exception(Error.MeshHasNoFaces());
 
+                // Get unique face indices to handle duplicates
+                var uniqueFaceIndices = resolvedFaceIndices.Distinct().ToArray();
+
                 // Validate face indices
-                var invalidIndices = resolvedFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
+                var invalidIndices = uniqueFaceIndices.Where(i => i < 0 || i >= faceCount).ToList();
                 if (invalidIndices.Any())
                 {
                     throw new Exception($"Invalid face indices: {string.Join(", ", invalidIndices)}. Valid range: 0 to {faceCount - 1}.");
                 }
 
-                // Get the faces to extrude
-                var facesToExtrude = resolvedFaceIndices.Select(i => faces[i]).ToArray();
+                // Check if we're deleting all faces
+                if (uniqueFaceIndices.Length >= faceCount)
+                {
+                    throw new Exception("Cannot delete all faces from a mesh. At least one face must remain.");
+                }
 
-                // Perform extrusion
-                Face[]? newFaces = null;
+                var originalFaceCount = proBuilderMesh.faceCount;
+                var originalVertexCount = proBuilderMesh.vertexCount;
+
+                // Get the faces to delete
+                var facesToDelete = uniqueFaceIndices.Select(i => faces[i]).ToArray();
+
+                // Perform deletion
                 try
                 {
-                    newFaces = proBuilderMesh.Extrude(facesToExtrude, extrudeMethod, distance);
+                    proBuilderMesh.DeleteFaces(facesToDelete);
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(Error.ExtrusionFailed(ex.Message));
-                }
-
-                if (newFaces == null || newFaces.Length == 0)
-                {
-                    throw new Exception(Error.ExtrusionFailed("No new faces were created. The operation may not be valid for this mesh configuration."));
+                    throw new Exception($"Failed to delete faces: {ex.Message}");
                 }
 
                 // Rebuild mesh
@@ -161,25 +158,13 @@ Examples:
                 EditorUtility.SetDirty(go);
                 EditorUtils.RepaintAllEditorWindows();
 
-                // Find new face indices
-                var allFaces = proBuilderMesh.faces;
-                var newFaceIndices = new List<int>();
-                var allFaceCount = allFaces.Count();
-                for (int i = 0; i < allFaceCount; i++)
+                return new DeleteFacesResponse
                 {
-                    if (newFaces.Contains(allFaces[i]))
-                        newFaceIndices.Add(i);
-                }
-
-                return new ExtrudeResponse
-                {
-                    extrudedFaceCount = facesToExtrude.Length,
+                    deletedFaceCount = uniqueFaceIndices.Length,
                     selectionMethod = selectionMethod,
-                    extrudedFaceIndices = resolvedFaceIndices,
-                    extrudeMethod = extrudeMethod.ToString(),
-                    distance = distance,
-                    newFacesCreated = newFaces.Length,
-                    newFaceIndices = newFaceIndices.ToArray(),
+                    deletedFaceIndices = uniqueFaceIndices,
+                    facesRemoved = originalFaceCount - proBuilderMesh.faceCount,
+                    verticesRemoved = originalVertexCount - proBuilderMesh.vertexCount,
                     totalFaceCount = proBuilderMesh.faceCount,
                     totalVertexCount = proBuilderMesh.vertexCount,
                     totalEdgeCount = proBuilderMesh.edgeCount
@@ -187,17 +172,15 @@ Examples:
             });
         }
 
-        #region Extrude Response Classes
+        #region DeleteFaces Response Classes
 
-        public class ExtrudeResponse
+        public class DeleteFacesResponse
         {
-            public int extrudedFaceCount;
+            public int deletedFaceCount;
             public string selectionMethod = string.Empty;
-            public int[]? extrudedFaceIndices;
-            public string extrudeMethod = string.Empty;
-            public float distance;
-            public int newFacesCreated;
-            public int[]? newFaceIndices;
+            public int[]? deletedFaceIndices;
+            public int facesRemoved;
+            public int verticesRemoved;
             public int totalFaceCount;
             public int totalVertexCount;
             public int totalEdgeCount;
