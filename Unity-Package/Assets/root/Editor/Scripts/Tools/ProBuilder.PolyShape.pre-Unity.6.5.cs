@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.Collections.Generic;
@@ -193,7 +193,7 @@ Examples:
                 return new CreatePolyShapeResponse
                 {
                     gameObjectName = go.name,
-                    instanceId = go.GetEntityId(),
+                    instanceId = go.GetInstanceID(),
                     position = FormatVector3(go.transform.position),
                     rotation = FormatVector3(go.transform.eulerAngles),
                     pointCount = points.Length,
@@ -213,7 +213,7 @@ Examples:
         public class CreatePolyShapeResponse
         {
             public string gameObjectName = string.Empty;
-            public UnityEngine.EntityId instanceId;
+            public int instanceId;
             public string position = string.Empty;
             public string rotation = string.Empty;
             public int pointCount;

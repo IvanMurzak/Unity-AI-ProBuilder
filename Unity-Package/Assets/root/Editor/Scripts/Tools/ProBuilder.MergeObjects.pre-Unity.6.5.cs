@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.Collections.Generic;
@@ -181,7 +181,7 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
                         additionalMeshes.Add(new AdditionalMeshInfo
                         {
                             name = resultMeshes[i].gameObject.name,
-                            instanceId = resultMeshes[i].gameObject.GetEntityId()
+                            instanceId = resultMeshes[i].gameObject.GetInstanceID()
                         });
                     }
                 }
@@ -191,7 +191,7 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
                     mergedMeshCount = meshes.Count,
                     resultMeshCount = resultMeshes.Count,
                     targetObjectName = targetGo.name,
-                    targetInstanceId = targetGo.GetEntityId(),
+                    targetInstanceId = targetGo.GetInstanceID(),
                     objectsDeleted = deletedCount,
                     totalFacesBefore = totalFacesBefore,
                     totalFacesAfter = resultMeshes.Sum(m => m.faceCount),
@@ -210,7 +210,7 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
             public int mergedMeshCount;
             public int resultMeshCount;
             public string targetObjectName = string.Empty;
-            public UnityEngine.EntityId targetInstanceId;
+            public int targetInstanceId;
             public int objectsDeleted;
             public int totalFacesBefore;
             public int totalFacesAfter;
@@ -230,7 +230,7 @@ Example: Merge a table made of separate leg and top meshes into one object.")]
         public class AdditionalMeshInfo
         {
             public string name = string.Empty;
-            public UnityEngine.EntityId instanceId;
+            public int instanceId;
         }
 
         #endregion

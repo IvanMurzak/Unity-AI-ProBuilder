@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.Collections.Generic;
@@ -28,51 +28,48 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
     public partial class Tool_ProBuilder
     {
-        public const string ProBuilderSubdivideEdgesToolId = "probuilder-subdivide-edges";
+        public const string ProBuilderConnectEdgesToolId = "probuilder-connect-edges";
         [AiTool
         (
-            ProBuilderSubdivideEdgesToolId,
-            Title = "Subdivide edges in a ProBuilder mesh",
+            ProBuilderConnectEdgesToolId,
+            Title = "Connect edges in a ProBuilder mesh",
             Enabled = false,
             ReadOnlyHint = false,
             DestructiveHint = false,
             IdempotentHint = false,
             OpenWorldHint = false
         )]
-        [AiSkillDescription("Insert new vertices on selected edges of a `ProBuilderMesh`, splitting each " +
-            "edge into smaller segments. Supply either `edges` (explicit list) or `faceDirection` (subdivides " +
-            "all edges of faces facing that direction); exactly one is required.")]
-        [AiSkillBody("Insert new vertices on selected edges of a `ProBuilderMesh`, subdividing each into " +
-            "smaller segments. Useful for adding detail to specific edges for further manipulation (extrude, " +
-            "bevel, etc.).\n\n" +
+        [AiSkillDescription("Insert new edges connecting the midpoints of selected edges within faces of a " +
+            "`ProBuilderMesh` — adds edge loops and extra geometry detail. Supply either `edges` (explicit list) " +
+            "or `faceDirection` (semantic selection); exactly one is required.")]
+        [AiSkillBody("Insert new edges connecting the midpoints of selected edges within faces of a " +
+            "`ProBuilderMesh`. When a face has more than two edges to connect, a center vertex is added. " +
+            "Useful for creating new edge loops and adding geometry detail.\n\n" +
             "## Inputs\n\n" +
             "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
-            "- `edges` — explicit list of edges to subdivide, each as `[vertexA, vertexB]`. Use " +
-            "'" + ProBuilderGetMeshInfoToolId + "' to discover valid edges.\n" +
-            "- `faceDirection` — semantic alternative: subdivides all edges of faces pointing this direction " +
+            "- `edges` — explicit list of edges to connect, each as `[vertexA, vertexB]`. Use " +
+            "'" + ProBuilderGetMeshInfoToolId + "' to discover valid indices.\n" +
+            "- `faceDirection` — semantic alternative: connects all edges of faces pointing this direction " +
             "(`Up`, `Down`, `Left`, `Right`, `Forward`, `Back`). Exactly one of `edges` / `faceDirection` is " +
-            "required.\n" +
-            "- `subdivisions` — number of subdivisions per edge. `1` splits each edge in half, `2` into thirds, " +
-            "and so on. Default `1`.\n\n" +
+            "required.\n\n" +
             "## Examples\n\n" +
-            "- Subdivide all edges of the top face: `faceDirection=\"up\"`, `subdivisions=2`.\n" +
-            "- Subdivide specific edges: `edges=[[0,1], [2,3]]`, `subdivisions=1`.")]
-        [Description(@"Inserts new vertices on edges, subdividing them into smaller segments.
-Useful for adding detail to specific edges for further manipulation.
+            "- Connect opposite edges of the top face: `faceDirection=\"up\"`.\n" +
+            "- Connect specific edges: `edges=[[0,1], [2,3]]`.")]
+        [Description(@"Inserts new edges connecting the midpoints of selected edges within faces.
+If a face has more than 2 edges to connect, a center vertex is added.
+This is useful for creating new edge loops and adding geometry detail.
 
 Examples:
-- Subdivide all edges of top face: faceDirection=""up"", subdivisions=2
-- Subdivide specific edges: edges=[[0,1], [2,3]], subdivisions=1")]
-        public SubdivideEdgesResponse SubdivideEdges
+- Connect opposite edges of top face: faceDirection=""up""
+- Connect specific edges: edges=[[0,1], [2,3]]")]
+        public ConnectEdgesResponse ConnectEdges
         (
             [Description("Reference to the GameObject with a ProBuilderMesh component.")]
             GameObjectRef gameObjectRef,
             [Description("Array of edge definitions. Each edge is [vertexA, vertexB]. Use ProBuilder_GetMeshInfo to get vertex indices.")]
             int[][]? edges = null,
-            [Description("Semantic face selection - subdivide all edges of faces facing this direction.")]
-            FaceDirection? faceDirection = null,
-            [Description("Number of subdivisions per edge. 1 = splits edge in half, 2 = splits into thirds, etc. Default is 1.")]
-            int subdivisions = 1
+            [Description("Semantic face selection - connect edges of faces facing this direction.")]
+            FaceDirection? faceDirection = null
         )
         {
             if (gameObjectRef == null)
@@ -92,13 +89,10 @@ Examples:
 
                 var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
                 if (proBuilderMesh == null)
-                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetEntityId()));
-
-                if (subdivisions < 1)
-                    throw new Exception("Subdivisions must be at least 1.");
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
                 // Resolve edges from either direct indices or semantic direction
-                List<Edge> edgesToSubdivide;
+                List<Edge> edgesToConnect;
                 string selectionMethod;
 
                 if (edges != null && edges.Length > 0)
@@ -110,7 +104,7 @@ Examples:
                             throw new Exception("Each edge must have exactly 2 vertex indices [vertexA, vertexB].");
                     }
 
-                    edgesToSubdivide = edges.Select(e => new Edge(e[0], e[1])).ToList();
+                    edgesToConnect = edges.Select(e => new Edge(e[0], e[1])).ToList();
                     selectionMethod = "by vertex indices";
                 }
                 else if (faceDirection.HasValue)
@@ -121,13 +115,13 @@ Examples:
 
                     // Get all edges from the selected faces
                     var faces = proBuilderMesh.faces;
-                    edgesToSubdivide = new List<Edge>();
+                    edgesToConnect = new List<Edge>();
                     foreach (var faceIndex in selectedIndices!)
                     {
-                        edgesToSubdivide.AddRange(faces[faceIndex].edges);
+                        edgesToConnect.AddRange(faces[faceIndex].edges);
                     }
                     // Remove duplicates
-                    edgesToSubdivide = edgesToSubdivide.Distinct().ToList();
+                    edgesToConnect = edgesToConnect.Distinct().ToList();
                     selectionMethod = $"from faces facing '{faceDirection.Value}'";
                 }
                 else
@@ -135,26 +129,29 @@ Examples:
                     throw new Exception("Either edges or faceDirection must be provided.");
                 }
 
-                if (edgesToSubdivide.Count == 0)
-                    throw new Exception("No edges found to subdivide.");
+                if (edgesToConnect.Count < 2)
+                    throw new Exception("At least 2 edges are required for connection.");
 
-                var originalVertexCount = proBuilderMesh.vertexCount;
+                var originalFaceCount = proBuilderMesh.faceCount;
                 var originalEdgeCount = proBuilderMesh.edgeCount;
 
-                // Perform subdivision
-                List<Edge>? newEdges = null;
+                // Perform connection
+                Face[]? newFaces = null;
+                Edge[]? newEdges = null;
                 try
                 {
-                    newEdges = proBuilderMesh.AppendVerticesToEdge(edgesToSubdivide, subdivisions);
+                    var result = ConnectElements.Connect(proBuilderMesh, edgesToConnect);
+                    newFaces = result.item1;
+                    newEdges = result.item2;
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"Failed to subdivide edges: {ex.Message}");
+                    throw new Exception($"Failed to connect edges: {ex.Message}");
                 }
 
-                if (newEdges == null || newEdges.Count == 0)
+                if ((newFaces == null || newFaces.Length == 0) && (newEdges == null || newEdges.Length == 0))
                 {
-                    throw new Exception("Subdivision failed - no new edges created. The edges may be invalid for this mesh.");
+                    throw new Exception("Connection failed - no new geometry created. The edges may not be suitable for connection.");
                 }
 
                 // Rebuild mesh
@@ -166,38 +163,38 @@ Examples:
                 EditorUtility.SetDirty(go);
                 EditorUtils.RepaintAllEditorWindows();
 
-                return new SubdivideEdgesResponse
+                return new ConnectEdgesResponse
                 {
                     selectionMethod = selectionMethod,
-                    edgesSubdivided = edgesToSubdivide.Count,
-                    subdivisionsPerEdge = subdivisions,
-                    newEdgesCreated = newEdges.Count,
-                    vertexCountBefore = originalVertexCount,
-                    vertexCountAfter = proBuilderMesh.vertexCount,
-                    verticesAdded = proBuilderMesh.vertexCount - originalVertexCount,
+                    edgesConnected = edgesToConnect.Count,
+                    newFacesCreated = newFaces?.Length ?? 0,
+                    newEdgesCreated = newEdges?.Length ?? 0,
+                    faceCountBefore = originalFaceCount,
+                    faceCountAfter = proBuilderMesh.faceCount,
+                    facesAdded = proBuilderMesh.faceCount - originalFaceCount,
                     edgeCountBefore = originalEdgeCount,
                     edgeCountAfter = proBuilderMesh.edgeCount,
                     edgesAdded = proBuilderMesh.edgeCount - originalEdgeCount,
-                    totalFaceCount = proBuilderMesh.faceCount
+                    totalVertexCount = proBuilderMesh.vertexCount
                 };
             });
         }
 
-        #region SubdivideEdges Response Classes
+        #region ConnectEdges Response Classes
 
-        public class SubdivideEdgesResponse
+        public class ConnectEdgesResponse
         {
             public string selectionMethod = string.Empty;
-            public int edgesSubdivided;
-            public int subdivisionsPerEdge;
+            public int edgesConnected;
+            public int newFacesCreated;
             public int newEdgesCreated;
-            public int vertexCountBefore;
-            public int vertexCountAfter;
-            public int verticesAdded;
+            public int faceCountBefore;
+            public int faceCountAfter;
+            public int facesAdded;
             public int edgeCountBefore;
             public int edgeCountAfter;
             public int edgesAdded;
-            public int totalFaceCount;
+            public int totalVertexCount;
         }
 
         #endregion

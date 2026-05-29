@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.Collections.Generic;
@@ -92,7 +92,7 @@ Examples:
 
                 var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
                 if (proBuilderMesh == null)
-                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetEntityId()));
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
                 if (subdivisions < 1)
                     throw new Exception("Subdivisions must be at least 1.");

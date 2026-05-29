@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 using com.IvanMurzak.McpPlugin;
 
 namespace com.IvanMurzak.Unity.MCP.Editor.API
@@ -19,7 +19,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     {
         public static class Error
         {
-            public static string ProBuilderMeshNotFound(UnityEngine.EntityId instanceID)
+            public static string ProBuilderMeshNotFound(int instanceID)
                 => $"[Error] ProBuilderMesh component not found on GameObject with instanceID '{instanceID}'. " +
                    "Make sure the GameObject has a ProBuilderMesh component attached.";
 

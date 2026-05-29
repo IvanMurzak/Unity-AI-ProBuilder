@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.ComponentModel;
@@ -156,7 +156,7 @@ that can be modified using other ProBuilder tools like extrusion, beveling, etc.
                 return new CreateShapeResponse
                 {
                     gameObjectName = go.name,
-                    instanceId = go.GetEntityId(),
+                    instanceId = go.GetInstanceID(),
                     shapeType = shapeType.ToString(),
                     position = FormatVector3(go.transform.position),
                     rotation = FormatVector3(go.transform.eulerAngles),
@@ -173,7 +173,7 @@ that can be modified using other ProBuilder tools like extrusion, beveling, etc.
         public class CreateShapeResponse
         {
             public string gameObjectName = string.Empty;
-            public UnityEngine.EntityId instanceId;
+            public int instanceId;
             public string shapeType = string.Empty;
             public string position = string.Empty;
             public string rotation = string.Empty;

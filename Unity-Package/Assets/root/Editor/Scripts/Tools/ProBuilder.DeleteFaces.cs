@@ -9,6 +9,7 @@
 */
 
 #nullable enable
+#if UNITY_6000_5_OR_NEWER
 
 using System;
 using System.ComponentModel;
@@ -27,7 +28,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
     public partial class Tool_ProBuilder
     {
         public const string ProBuilderDeleteFacesToolId = "probuilder-delete-faces";
-        [McpPluginTool
+        [AiTool
         (
             ProBuilderDeleteFacesToolId,
             Title = "Delete ProBuilder faces",
@@ -36,10 +37,10 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             IdempotentHint = false,
             OpenWorldHint = false
         )]
-        [McpPluginSkillDescription("Delete selected faces from a `ProBuilderMesh`, creating holes or removing " +
+        [AiSkillDescription("Delete selected faces from a `ProBuilderMesh`, creating holes or removing " +
             "geometry. Supply either `faceIndices` (explicit list) or `faceDirection` (semantic selection); " +
             "exactly one is required.")]
-        [McpPluginSkillBody("Delete selected faces from a `ProBuilderMesh`, creating holes or removing geometry " +
+        [AiSkillBody("Delete selected faces from a `ProBuilderMesh`, creating holes or removing geometry " +
             "entirely. Faces can be selected explicitly by index or semantically by direction.\n\n" +
             "## Inputs\n\n" +
             "- `gameObjectRef` — the GameObject hosting the `ProBuilderMesh` component.\n" +
@@ -87,7 +88,7 @@ Examples:
 
                 var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
                 if (proBuilderMesh == null)
-                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetEntityId()));
 
                 // Resolve face indices from either direct indices or semantic direction
                 int[] resolvedFaceIndices;
@@ -188,3 +189,4 @@ Examples:
         #endregion
     }
 }
+#endif

@@ -9,7 +9,7 @@
 */
 
 #nullable enable
-#if UNITY_6000_5_OR_NEWER
+#if !UNITY_6000_5_OR_NEWER
 
 using System;
 using System.Collections.Generic;
@@ -90,13 +90,13 @@ you often don't need GetMeshInfo at all - just use faceDirection=""up"" etc. dir
 
                 var proBuilderMesh = go.GetComponent<ProBuilderMesh>();
                 if (proBuilderMesh == null)
-                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetEntityId()));
+                    throw new Exception(Error.ProBuilderMeshNotFound(go.GetInstanceID()));
 
                 var response = new GetMeshInfoResponse();
 
                 // Basic info
                 response.gameObjectName = go.name;
-                response.instanceId = go.GetEntityId();
+                response.instanceId = go.GetInstanceID();
                 response.faceCount = proBuilderMesh.faceCount;
                 response.vertexCount = proBuilderMesh.vertexCount;
                 response.edgeCount = proBuilderMesh.edgeCount;
@@ -238,7 +238,7 @@ you often don't need GetMeshInfo at all - just use faceDirection=""up"" etc. dir
         public class GetMeshInfoResponse
         {
             public string gameObjectName = string.Empty;
-            public UnityEngine.EntityId instanceId;
+            public int instanceId;
             public int faceCount;
             public int vertexCount;
             public int edgeCount;
