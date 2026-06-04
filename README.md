@@ -13,7 +13,7 @@
 
 </div>
 
-<img width="100%" alt="Stats" src="https://github.com/IvanMurzak/Unity-AI-ProBuilder/raw/main/docs/img/ai-probuilder-glitch.gif"/>
+<img width="100%" alt="ProBuilder" src="https://github.com/IvanMurzak/Unity-AI-ProBuilder/raw/main/docs/promo/promo-probuilder.gif"/>
 
 AI-powered 3D modeling tools for Unity ProBuilder. Enables AI assistants to create and manipulate editable meshes through natural language commands. Create primitive shapes, extrude faces, bevel edges, apply materials, merge objects, and perform advanced mesh operations like bridging and subdivision. Supports semantic face selection by direction (up, down, left, right) for intuitive editing. Perfect for rapid level prototyping and procedural geometry generation. Built on top of the [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) platform.
 
