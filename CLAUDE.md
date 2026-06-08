@@ -6,8 +6,8 @@ Unity package `com.ivanmurzak.unity.mcp.probuilder` — exposes ProBuilder mesh 
 
 ## Build / run
 
-- Package source: `Unity-Package/Assets/root/` (Editor tools under `Editor/Scripts/Tools/`).
-- Version source of truth: `Unity-Package/Assets/root/package.json`. Bump with `.\commands\bump-version.ps1 -NewVersion "x.y.z"`.
+- Package source: `Unity-Package/Packages/com.ivanmurzak.unity.mcp.probuilder/` (Editor tools under `Editor/Scripts/Tools/`).
+- Version source of truth: `Unity-Package/Packages/com.ivanmurzak.unity.mcp.probuilder/package.json`. Bump with `.\commands\bump-version.ps1 -NewVersion "x.y.z"`.
 - Releases trigger on push to `main` when the version tag is new.
 
 ## Critical invariants

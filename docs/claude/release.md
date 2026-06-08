@@ -1,6 +1,6 @@
 # Version Management
 
-The version is defined in `Unity-Package/Assets/root/package.json` and must be kept in sync with `Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Installer.cs` and the download URLs in both `README.md` files.
+The version is defined in `Unity-Package/Packages/com.ivanmurzak.unity.mcp.probuilder/package.json` and must be kept in sync with `Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Installer.cs` and the download URLs in both `README.md` files.
 
 **Bump version across all files:**
 ```powershell

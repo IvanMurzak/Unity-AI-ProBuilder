@@ -3,7 +3,7 @@
 ## Repository Structure
 
 ```
-Unity-Package/Assets/root/     # The distributable Unity package source
+Unity-Package/Packages/com.ivanmurzak.unity.mcp.probuilder/     # The distributable Unity package source
   Editor/Scripts/Tools/        # All MCP tool implementations (Editor-only assembly)
   Runtime/                     # Empty runtime assembly placeholder
   Tests/                       # Test stubs (real tests are in Unity-Tests/)
@@ -26,7 +26,7 @@ docs/                          # Deployment guides (GitHub, OpenUPM, npmjs)
 
 ## Tool Pattern
 
-All ProBuilder tools are partial methods on a single class `Tool_ProBuilder` in `Unity-Package/Assets/root/Editor/Scripts/Tools/`. Each `.cs` file contributes one tool operation.
+All ProBuilder tools are partial methods on a single class `Tool_ProBuilder` in `Unity-Package/Packages/com.ivanmurzak.unity.mcp.probuilder/Editor/Scripts/Tools/`. Each `.cs` file contributes one tool operation.
 
 Key conventions:
 - The class is decorated with `[McpPluginToolType]` (from `com.IvanMurzak.McpPlugin`)
