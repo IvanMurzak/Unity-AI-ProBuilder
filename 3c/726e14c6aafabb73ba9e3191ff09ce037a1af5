@@ -1,0 +1,23 @@
+"Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Installer.cs"
+  s_d264dd3cdf4ce3::t_474ae5d55c5314 22
+Unity-Package/Packages/com.ivanmurzak.unity.mcp.probuilder/package.json
+  s_d264dd3cdf4ce3::t_76adac30f811ad 15,19
+Unity-Package/Packages/packages-lock.json
+  s_d264dd3cdf4ce3::t_a4376440f0b7fe 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3c726e14c6aafabb73ba9e3191ff09ce037a1af5",
+  "prompts": {},
+  "sessions": {
+    "s_d264dd3cdf4ce3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2aa6de27-4e92-4ce8-808d-e318795c8283",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Ivan Murzak <Ivan.D.Murzak@gmail.com>"
+    }
+  }
+}
