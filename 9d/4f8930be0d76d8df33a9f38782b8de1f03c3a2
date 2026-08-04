@@ -1,0 +1,24 @@
+"Installer/Assets/com.IvanMurzak/AI ProBuilder Installer/Installer.cs"
+  h_8325a340bf5897 22
+Unity-Package/Packages/com.ivanmurzak.unity.mcp.probuilder/package.json
+  h_8325a340bf5897 15,19
+Unity-Package/Packages/packages-lock.json
+  h_8325a340bf5897 4,19
+Unity-Tests/2022.3.62f3/Packages/packages-lock.json
+  h_8325a340bf5897 4,19
+Unity-Tests/2023.2.22f1/Packages/packages-lock.json
+  h_8325a340bf5897 4,19
+Unity-Tests/6000.3.1f1/Packages/packages-lock.json
+  h_8325a340bf5897 4,19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "9d4f8930be0d76d8df33a9f38782b8de1f03c3a2",
+  "prompts": {},
+  "humans": {
+    "h_8325a340bf5897": {
+      "author": "Ivan Murzak <Ivan.D.Murzak@gmail.com>"
+    }
+  }
+}
