@@ -1,0 +1,47 @@
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.GetMeshInfo.cs
+  s_254b2884855a96::t_5ff95ec8664291 38-54
+Unity-Package/Packages/manifest.json
+  s_254b2884855a96::t_272736ef4fc38f 3
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.MergeObjects.cs
+  s_254b2884855a96::t_9da685b0167a33 42-57
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.SubdivideEdges.cs
+  s_254b2884855a96::t_85d7025577bed6 41-58
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.SetFaceMaterial.cs
+  s_254b2884855a96::t_d45a0fc9ec1d41 40-57
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.Bridge.cs
+  s_254b2884855a96::t_f4622f8d4b8d04 39-57
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.FlipNormals.cs
+  s_254b2884855a96::t_616026fe2114eb 39-57
+Unity-Package/Assets/root/package.json
+  s_254b2884855a96::t_56050af07b6899 19
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.ConnectEdges.cs
+  s_254b2884855a96::t_364dbc53f6ea68 41-56
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.SetPivot.cs
+  s_254b2884855a96::t_913831c3867e8d 53-70
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.Bevel.cs
+  s_254b2884855a96::t_69f090242705db 40-56
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.Extrude.cs
+  s_254b2884855a96::t_604727ebb8fbc1 40-60
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.DeleteFaces.cs
+  s_254b2884855a96::t_d3023b2b3b1948 39-55
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.CreateShape.cs
+  s_254b2884855a96::t_d2f47960953a1e 39-58
+Unity-Package/Assets/root/Editor/Scripts/Tools/ProBuilder.PolyShape.cs
+  s_254b2884855a96::t_f5b267d18f0be5 41-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "86e39b2b8f908e1175f0752624ded2a0da8b900f",
+  "prompts": {},
+  "sessions": {
+    "s_254b2884855a96": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d643efd7-8f16-4f40-9b01-f9eefe3fa842",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Ivan Murzak <Ivan.D.Murzak@gmail.com>"
+    }
+  }
+}

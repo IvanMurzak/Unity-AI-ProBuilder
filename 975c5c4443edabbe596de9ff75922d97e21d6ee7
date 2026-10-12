@@ -1,0 +1,45 @@
+Unity-Package/Assets/Plugins/NuGet/.nuget-installed.json
+  s_f7f7392a09f46e::t_c0f88146f537da 4,10,16
+Unity-Package/Assets/Plugins/NuGet/McpPlugin.Common.dll.meta
+  s_f7f7392a09f46e::t_1dddd169f69cab 14-19,28
+Unity-Package/Assets/Plugins/NuGet/McpPlugin.dll.meta
+  s_f7f7392a09f46e::t_10b19b2cbb1c91 14-19,28
+Unity-Package/Assets/Plugins/NuGet/Microsoft.Extensions.DependencyInjection.Abstractions.dll.meta
+  s_f7f7392a09f46e::t_25e4381d71f275 14-19,28
+Unity-Package/Assets/Plugins/NuGet/Microsoft.Extensions.Logging.Abstractions.dll.meta
+  s_f7f7392a09f46e::t_cf98dd8b45aa9d 14-19,28
+Unity-Package/Assets/Plugins/NuGet/System.Runtime.CompilerServices.Unsafe.dll.meta
+  s_f7f7392a09f46e::t_e9c3f4581cc69f 14-19,28
+Unity-Tests/2022.3.62f3/Assets/Plugins/NuGet/.nuget-installed.json
+  s_f7f7392a09f46e::t_d1b1ade0612fb5 4,10,16
+Unity-Tests/2022.3.62f3/Assets/Plugins/NuGet/McpPlugin.Common.dll.meta
+  s_f7f7392a09f46e::t_f598a45d4aae2d 14-19,28
+Unity-Tests/2022.3.62f3/Assets/Plugins/NuGet/McpPlugin.dll.meta
+  s_f7f7392a09f46e::t_33d40559e9a5c8 14-19,28
+Unity-Tests/2022.3.62f3/Assets/Plugins/NuGet/Microsoft.Extensions.DependencyInjection.Abstractions.dll.meta
+  s_f7f7392a09f46e::t_1e6cc9ea4a4005 14-19,28
+Unity-Tests/2022.3.62f3/Assets/Plugins/NuGet/Microsoft.Extensions.Logging.Abstractions.dll.meta
+  s_f7f7392a09f46e::t_dcd8b5f6985359 14-19,28
+Unity-Tests/2022.3.62f3/Assets/Plugins/NuGet/System.Runtime.CompilerServices.Unsafe.dll.meta
+  s_f7f7392a09f46e::t_7e8a09bb4f046a 14-19,28
+Unity-Tests/2023.2.22f1/Assets/Plugins/NuGet/.nuget-installed.json
+  s_f7f7392a09f46e::t_71cb456afd681b 4,10,16
+Unity-Tests/6000.3.1f1/Assets/Plugins/NuGet/.nuget-installed.json
+  s_f7f7392a09f46e::t_daa24e2d19a4a3 4,10,16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "975c5c4443edabbe596de9ff75922d97e21d6ee7",
+  "prompts": {},
+  "sessions": {
+    "s_f7f7392a09f46e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d6d5d57f-6526-4873-9255-59c34d4f8571",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Ivan Murzak <Ivan.D.Murzak@gmail.com>"
+    }
+  }
+}
