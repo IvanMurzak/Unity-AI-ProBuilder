@@ -94,7 +94,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
                 list.Add(i);
             }
             // Fixed order: the axes first, then Other.
-            return ProBuilderOps.Directions.Append("Other").Where(result.ContainsKey).ToDictionary(d => d, d => result[d]);
+            return ProBuilderOps.DirectionsAndOther.Where(result.ContainsKey).ToDictionary(d => d, d => result[d]);
         }
 
         // ------------------------------------------------------------ faces

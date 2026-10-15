@@ -38,8 +38,16 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
         private static string ShapeTypes => string.Join(", ", Enum.GetNames(typeof(ShapeType)));
 
         [RqlDescription("every ProBuilderMesh in the loaded scenes, inactive ones included")]
-        public List<ProBuilderMesh> meshes =>
-            RqlUnity.AllGameObjects().Select(go => go.GetComponent<ProBuilderMesh>()).Where(m => m != null).ToList();
+        public List<ProBuilderMesh> meshes
+        {
+            get
+            {
+                // One native call per root (depth-first, inactive included) instead of one GetComponent per GameObject.
+                var result = new List<ProBuilderMesh>();
+                foreach (var root in RqlUnity.RootGameObjects()) result.AddRange(root.GetComponentsInChildren<ProBuilderMesh>(true));
+                return result;
+            }
+        }
 
         [RqlCallable("create an editable ProBuilder shape: type Cube, Stair, CurvedStair, Prism, Cylinder, Plane, Door, Pipe, Cone, Sprite, Arch, " +
                      "Sphere, Torus; size (x, y, z) rescales the generated geometry; position / rotation (euler) are local to parent (world without one); " +

@@ -34,6 +34,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
 
         public static readonly string[] Directions = { "Up", "Down", "Left", "Right", "Forward", "Back" };
 
+        /// <summary><see cref="Directions"/> followed by "Other": every value <see cref="Direction"/> returns, in report order.</summary>
+        public static readonly string[] DirectionsAndOther = Directions.Append("Other").ToArray();
+
         private static readonly Vector3[] Axes = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
 
         private static readonly HashSet<ProBuilderMesh> Edited = new HashSet<ProBuilderMesh>();
@@ -47,11 +50,6 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
             mesh.ToMesh();
             mesh.Refresh();
             EditorUtility.SetDirty(mesh);
-            Track(mesh);
-        }
-
-        public static void Track(ProBuilderMesh mesh)
-        {
             if (!_hooked)
             {
                 Undo.undoRedoPerformed += Resync;
@@ -92,6 +90,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
                 throw new ArgumentException($"{parameter} is empty: pass vertex index pairs such as [[0, 1], [2, 3]] or probuilder.edges($, faces)");
             var known = new HashSet<Edge>(mesh.faces.SelectMany(f => f.edges));
             var result = new List<Edge>();
+            var seen = new HashSet<Edge>();
             foreach (var pair in edges)
             {
                 if (pair == null || pair.Length != 2)
@@ -99,7 +98,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
                 var edge = new Edge(pair[0], pair[1]);
                 if (!known.Contains(edge))
                     throw new ArgumentException($"{parameter}: [{pair[0]}, {pair[1]}] is not an edge of '{mesh.name}' (list them with probuilder.edges($) or faces.edges)");
-                if (!result.Contains(edge)) result.Add(edge);
+                if (seen.Add(edge)) result.Add(edge);
             }
             return result;
         }
@@ -162,8 +161,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
 
         public static string ParseDirection(string direction)
         {
-            foreach (var d in Directions.Append("Other"))
-                if (string.Equals(d, direction?.Trim(), StringComparison.OrdinalIgnoreCase)) return d;
+            var trimmed = direction?.Trim();
+            foreach (var d in DirectionsAndOther)
+                if (string.Equals(d, trimmed, StringComparison.OrdinalIgnoreCase)) return d;
             throw new ArgumentException($"unknown direction '{direction}' (Up, Down, Left, Right, Forward, Back, Other)");
         }
 

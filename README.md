@@ -35,7 +35,7 @@ AI-powered 3D modeling tools for Unity ProBuilder. Enables AI assistants to crea
 
 ## RQL (no extension tools)
 
-On the RQL branch of Unity-MCP this package adds no MCP tools: it contributes an RQL module, so agents use
+Since Unity-MCP 1.0.0 this package adds no MCP tools: it contributes an RQL module, so agents use
 `rql-query` / `rql-mutate` (the `unity-rql` skill carries the full "ProBuilder" guide with examples).
 `M` below stands for `probuilder | get meshes | where gameObject.name == "Crate"`.
 

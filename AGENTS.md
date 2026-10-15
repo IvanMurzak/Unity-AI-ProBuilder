@@ -1,7 +1,7 @@
 # AGENTS.md — Unity-AI-ProBuilder
 
 Unity package `com.ivanmurzak.unity.mcp.probuilder` — exposes ProBuilder mesh operations so AI can create and
-manipulate 3D geometry (on branch `experiment/rql`: through Unity-MCP's RQL tools instead of `probuilder-*` tools). An extension of
+manipulate 3D geometry through Unity-MCP's RQL tools (no extension MCP tools). An extension of
 [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) (`com.ivanmurzak.unity.mcp`), generated from
 `Unity-AI-Tools-Template`; the user-facing tool list is in `README.md`.
 
@@ -10,7 +10,7 @@ manipulate 3D geometry (on branch `experiment/rql`: through Unity-MCP's RQL tool
 - `Unity-Package/` — Unity project hosting the package; only `Packages/com.ivanmurzak.unity.mcp.probuilder/`
   ships.
   - `package.json` — the version source of truth and the dependency pins.
-  - `Editor/Scripts/Rql/` — branch `experiment/rql`: the `ProBuilderModule` (IRqlModule: `probuilder` source,
+  - `Editor/Scripts/Rql/` — the `ProBuilderModule` (IRqlModule: `probuilder` source,
     `probuilder.*` functions, the ProBuilderMesh adapter, face / material views, the agent guide); replaces the former
     `probuilder-*` tools. New operations are adapter methods or `ProBuilderEditorApi` `[RqlCallable]` methods.
   - `Runtime/` — runtime assembly (currently empty).
