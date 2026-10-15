@@ -33,29 +33,30 @@ AI-powered 3D modeling tools for Unity ProBuilder. Enables AI assistants to crea
 | 2023.2.22f1   | [![r](https://github.com/IvanMurzak/Unity-AI-ProBuilder/workflows/release/badge.svg?job=test-unity-2023-2-22f1-editmode)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/actions/workflows/release.yml) | [![r](https://github.com/IvanMurzak/Unity-AI-ProBuilder/workflows/release/badge.svg?job=test-unity-2023-2-22f1-playmode)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/actions/workflows/release.yml) | [![r](https://github.com/IvanMurzak/Unity-AI-ProBuilder/workflows/release/badge.svg?job=test-unity-2023-2-22f1-standalone)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/actions/workflows/release.yml) |
 | 6000.3.1f1    | [![r](https://github.com/IvanMurzak/Unity-AI-ProBuilder/workflows/release/badge.svg?job=test-unity-6000-3-1f1-editmode)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/actions/workflows/release.yml)  | [![r](https://github.com/IvanMurzak/Unity-AI-ProBuilder/workflows/release/badge.svg?job=test-unity-6000-3-1f1-playmode)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/actions/workflows/release.yml)  | [![r](https://github.com/IvanMurzak/Unity-AI-ProBuilder/workflows/release/badge.svg?job=test-unity-6000-3-1f1-standalone)](https://github.com/IvanMurzak/Unity-AI-ProBuilder/actions/workflows/release.yml)  |
 
-## AI ProBuilder Tools
+## RQL (no extension tools)
 
-Core tools:
-- `probuilder-create-shape` - Create primitive shapes (cube, sphere, cylinder, etc.)
-- `probuilder-get-mesh-info` - Read mesh data (faces, vertices, edges)
-- `probuilder-extrude` - Extrude faces with various methods
-- `probuilder-bevel` - Bevel edges
-- `probuilder-delete-faces` - Delete faces by index or direction
-- `probuilder-set-face-material` - Apply materials to specific faces
+On the RQL branch of Unity-MCP this package adds no MCP tools: it contributes an RQL module, so agents use
+`rql-query` / `rql-mutate` (the `unity-rql` skill carries the full "ProBuilder" guide with examples).
+`M` below stands for `probuilder | get meshes | where gameObject.name == "Crate"`.
 
-Mesh operations:
-- `probuilder-flip-normals` - Reverse face normals
-- `probuilder-set-pivot` - Change mesh pivot point
-- `probuilder-merge-objects` - Combine multiple ProBuilder meshes
+| Former tool | RQL |
+| --- | --- |
+| `probuilder-create-shape` | `probuilder \| call CreateShape("Cube", "Crate", "(2, 1, 2)", "(0, 0.5, 0)")` (type, name, size, position, rotation, parent) |
+| `probuilder-create-poly-shape` | `probuilder \| call CreatePolyShape(["(0, 0)", "(4, 0)", "(4, 3)"], 0.5, "Floor")` (points, height, name, position, flipNormals, parent) |
+| `probuilder-get-mesh-info` | `M \| select faceCount vertexCount edgeCount bounds directions materials`, `M \| get faces \| select index direction center edges`, `probuilder.vertices($, start, count)` |
+| `probuilder-extrude` | `M \| call Extrude(probuilder.facing($, "Up"), 0.5)` (faces, distance, method) |
+| `probuilder-delete-faces` | `M \| call DeleteFaces([0, 2])` |
+| `probuilder-set-face-material` | `M \| call SetFaceMaterial(probuilder.facing($, "Up"), "Assets/Materials/Grass.mat")` |
+| `probuilder-flip-normals` | `M \| call FlipNormals([0])` (all faces when omitted) |
+| `probuilder-bevel` | `M \| call Bevel(probuilder.edges($, [4]), 0.1)` |
+| `probuilder-bridge` | `M \| call Bridge(probuilder.openEdges($)[0], probuilder.openEdges($)[2])` |
+| `probuilder-connect-edges` | `M \| call ConnectEdges(probuilder.edges($, [4]))` |
+| `probuilder-subdivide-edges` | `M \| call SubdivideEdges([[0, 1]], 2)` |
+| `probuilder-set-pivot` | `M \| call SetPivot("Center")` / `SetPivot("FirstVertex")` / `SetPivotAt("(0, 0, 0)")` |
+| `probuilder-merge-objects` | `probuilder \| call Merge([ref("ProBuilderMesh#…"), ref("GameObject#…")], true)` |
 
-Edge operations:
-- `probuilder-subdivide-edges` - Add vertices to edges
-- `probuilder-connect-edges` - Connect edges with new geometry
-- `probuilder-bridge` - Bridge between edge selections
-
-Advanced:
-- `probuilder-create-poly-shape` - Create custom polygon-based meshes
-
+Faces are index lists (`[0, 1]`), edges vertex index pairs (`[[0, 1]]`); `probuilder.facing($, "Up")` replaces the former
+`faceDirection` parameter. Every call validates its input first and is undoable.
 
 ## Installation
 
