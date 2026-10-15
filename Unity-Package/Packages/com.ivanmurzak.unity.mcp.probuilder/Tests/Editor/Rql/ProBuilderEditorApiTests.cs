@@ -154,6 +154,18 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests.Rql.ProBuilder
         }
 
         [Test]
+        public void MergeDeletesNestedSources()
+        {
+            var parent = CreateCube("Parent", new Vector3(3f, 0f, 0f));
+            var child = CreateCube("Child", new Vector3(6f, 0f, 0f));
+            child.transform.SetParent(parent.transform, true);
+            Ok($"probuilder | call Merge([{Ref(Cube)}, {Ref(parent)}, {Ref(child)}])");
+            Assert.AreEqual(18, Cube.faceCount);
+            Assert.IsNull(Find("Parent"));
+            Assert.IsNull(Find("Child"));
+        }
+
+        [Test]
         public void MergeRejectsBadInput()
         {
             Fails($"probuilder | call Merge([{Ref(Cube)}])", "at least 2 meshes");

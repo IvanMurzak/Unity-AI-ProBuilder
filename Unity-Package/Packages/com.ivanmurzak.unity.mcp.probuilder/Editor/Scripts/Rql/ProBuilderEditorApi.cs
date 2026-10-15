@@ -136,7 +136,8 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Rql.ProBuilder
             }
             if (deleteSources)
                 foreach (var source in sources)
-                    Undo.DestroyObjectImmediate(source.gameObject);
+                    if (source != null) // a source under an earlier one is already destroyed with it
+                        Undo.DestroyObjectImmediate(source.gameObject);
             return target;
         }
 
