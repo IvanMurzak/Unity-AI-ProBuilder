@@ -1,7 +1,7 @@
 # AGENTS.md — Unity-AI-ProBuilder
 
-Unity package `com.ivanmurzak.unity.mcp.probuilder` — exposes ProBuilder mesh operations as MCP tools so AI
-can create and manipulate 3D geometry (`probuilder-*`). An extension of
+Unity package `com.ivanmurzak.unity.mcp.probuilder` — exposes ProBuilder mesh operations so AI can create and
+manipulate 3D geometry through Unity-MCP's RQL tools (no extension MCP tools). An extension of
 [AI Game Developer](https://github.com/IvanMurzak/Unity-MCP) (`com.ivanmurzak.unity.mcp`), generated from
 `Unity-AI-Tools-Template`; the user-facing tool list is in `README.md`.
 
@@ -10,9 +10,12 @@ can create and manipulate 3D geometry (`probuilder-*`). An extension of
 - `Unity-Package/` — Unity project hosting the package; only `Packages/com.ivanmurzak.unity.mcp.probuilder/`
   ships.
   - `package.json` — the version source of truth and the dependency pins.
-  - `Editor/Scripts/Tools/` — the MCP tools (`Tool_ProBuilder`); new tools go here.
+  - `Editor/Scripts/Rql/` — the `ProBuilderModule` (IRqlModule: `probuilder` source,
+    `probuilder.*` functions, the ProBuilderMesh adapter, face / material views, the agent guide); replaces the former
+    `probuilder-*` tools. New operations are adapter methods or `ProBuilderEditorApi` `[RqlCallable]` methods.
   - `Runtime/` — runtime assembly (currently empty).
-  - `Tests/Editor/` (EditMode) and `Tests/Runtime/` (PlayMode).
+  - `Tests/Editor/Rql/` (EditMode, `ProBuilderTestBase` + one file per adapter / view / source; a test runs every
+    guide example) and `Tests/Runtime/` (PlayMode).
 - `Unity-Tests/<unity-version>/` — one test project per supported Unity version, consuming the package via
   `file:`. A new version must also be added to `test_pull_request.yml` and `release.yml`.
 - `Installer/` — Unity project that exports the `.unitypackage` installer
@@ -40,23 +43,14 @@ maintainer-applied `ci-ok` label and abort if the PR touches `.github/workflows/
 
 ## Critical invariants
 
-- **Main thread only.** Every Unity API call inside a tool MUST be wrapped in
-  `MainThread.Instance.Run(() => { ... })` — MCP calls arrive off the main thread; only argument validation
-  runs outside.
-- **Tool shape.** All tools are methods of one `[AiToolType] partial class Tool_ProBuilder` (namespace
-  `com.IvanMurzak.Unity.MCP.Editor.API`), one operation per file `ProBuilder.<ToolName>.cs`, with a
-  `public const string <ToolName>ToolId = "probuilder-<tool-name>"`, `[AiTool(...)]`, `[AiSkillDescription]` /
-  `[AiSkillBody]` and `[Description]`. Each tool returns its own response class, nested in the same file under
-  `#region <ToolName> Response Classes`. GameObjects are referenced via `GameObjectRef`
-  (`.FindGameObject(out var error)`).
-- **Errors.** Common messages live in `Tool_ProBuilder.Error` (`ProBuilder.cs`); tools throw `Exception` with
-  them and the MCP framework returns them to the client.
-- **After a mesh edit** always: `ToMesh()` -> `Refresh()` -> `EditorUtility.SetDirty()` ->
-  `EditorUtils.RepaintAllEditorWindows()`.
-- **Face selection** (`ProBuilder.FaceSelectionHelper.cs`): tools accept `faceIndices` OR `faceDirection`
-  (Up/Down/Left/Right/Forward/Back, dot-product threshold 0.7) — exactly one.
-- **EntityId split.** Unity 6.5+ returns `UnityEngine.EntityId` from `GameObject.GetEntityId()`; pre-6.5
-  returns `int` from `GetInstanceID()`. Files surfacing an instance ID ship as a `*.cs`
-  (`#if UNITY_6000_5_OR_NEWER`) + `*.pre-Unity.6.5.cs` (`#if !UNITY_6000_5_OR_NEWER`) pair — e.g.
-  `ProBuilder.Extrude.cs` / `ProBuilder.Extrude.pre-Unity.6.5.cs`. Keep both variants in sync.
+- **Main thread only.** RQL runs on the main thread (Unity-MCP dispatches the RQL tools there).
+- **After a mesh edit** call `ProBuilderOps.Rebuild(mesh)` (`ToMesh()` -> `Refresh()` -> `SetDirty`, and the mesh is
+  rebuilt again after Undo / Redo — ProBuilder only does that for selected meshes). The engine records the call target
+  for Undo; record any other object you change (renderer, transform) with `Undo.RecordObject` first.
+- **Validate, never clamp.** Face indices, edges (must be edges of the mesh), amounts and counts are checked before the
+  mesh changes; invalid input throws with the valid range.
+- **Selections** are face index lists and `[a, b]` vertex pairs; `ProBuilderOps.Facing` (dot-product threshold 0.7,
+  local space) backs `probuilder.facing` and the face views' `direction`.
+- **Name clash.** Inside `com.IvanMurzak.Unity.MCP.*` namespaces, alias ProBuilder types inside the namespace block
+  (`using ProBuilderMesh = UnityEngine.ProBuilder.ProBuilderMesh;`).
 - Every C# file starts with the copyright box header and `#nullable enable`.

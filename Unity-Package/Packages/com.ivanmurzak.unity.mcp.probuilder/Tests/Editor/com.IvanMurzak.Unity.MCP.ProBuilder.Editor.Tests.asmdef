@@ -8,6 +8,7 @@
         "com.IvanMurzak.Unity.MCP.TestFiles",
         "com.IvanMurzak.Unity.MCP.ProBuilder.Runtime",
         "com.IvanMurzak.Unity.MCP.ProBuilder.Editor",
+        "Unity.ProBuilder",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
@@ -26,7 +27,10 @@
         "McpPlugin.dll",
         "McpPlugin.Common.dll",
         "R3.dll",
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "Rql.Contracts.dll",
+        "Rql.Parser.dll",
+        "Rql.Execution.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
